@@ -20,15 +20,27 @@ export const categorySales = [
   { name: 'Accessories', value: 15, color: '#6366f1' },
 ];
 
-export const recentOrders = [
-  { id: 'ORD-001', customer: 'Akua Mensah', total: 245, status: 'delivered', date: '2025-01-15' },
-  { id: 'ORD-002', customer: 'Efua Asante', total: 180, status: 'pending', date: '2025-01-15' },
-  { id: 'ORD-003', customer: 'Adwoa Osei', total: 320, status: 'processing', date: '2025-01-14' },
-  { id: 'ORD-004', customer: 'Kofi Owusu', total: 95, status: 'shipped', date: '2025-01-14' },
-  { id: 'ORD-005', customer: 'Ama Darko', total: 410, status: 'delivered', date: '2025-01-13' },
-  { id: 'ORD-006', customer: 'Yaa Appiah', total: 165, status: 'pending', date: '2025-01-13' },
-  { id: 'ORD-007', customer: 'Kwame Boateng', total: 285, status: 'cancelled', date: '2025-01-12' },
-  { id: 'ORD-008', customer: 'Akosua Manu', total: 520, status: 'delivered', date: '2025-01-12' },
+export interface Order {
+  id: string;
+  customer: string;
+  email: string;
+  phone: string;
+  region: string;
+  total: number;
+  status: string;
+  date: string;
+  items: { name: string; quantity: number; price: number }[];
+}
+
+export const recentOrders: Order[] = [
+  { id: 'ORD-001', customer: 'Akua Mensah', email: 'akua@email.com', phone: '0241234567', region: 'Greater Accra', total: 245, status: 'delivered', date: '2025-01-15', items: [{ name: 'Raw Shea Butter', quantity: 2, price: 95 }, { name: 'African Black Soap', quantity: 1, price: 55 }] },
+  { id: 'ORD-002', customer: 'Efua Asante', email: 'efua@email.com', phone: '0557654321', region: 'Ashanti', total: 180, status: 'pending', date: '2025-01-15', items: [{ name: 'Kente Eyeshadow Palette', quantity: 1, price: 150 }, { name: 'Shea Butter Hair Cream', quantity: 1, price: 30 }] },
+  { id: 'ORD-003', customer: 'Adwoa Osei', email: 'adwoa@email.com', phone: '0201122334', region: 'Western', total: 320, status: 'processing', date: '2025-01-14', items: [{ name: 'Ankara Maxi Dress', quantity: 1, price: 350 }] },
+  { id: 'ORD-004', customer: 'Kofi Owusu', email: 'kofi@email.com', phone: '0269988776', region: 'Central', total: 95, status: 'shipped', date: '2025-01-14', items: [{ name: 'African Black Soap Bar', quantity: 2, price: 45 }] },
+  { id: 'ORD-005', customer: 'Ama Darko', email: 'ama@email.com', phone: '0244556677', region: 'Greater Accra', total: 410, status: 'delivered', date: '2025-01-13', items: [{ name: 'Kente Eyeshadow Palette', quantity: 2, price: 150 }, { name: 'Raw Shea Butter', quantity: 1, price: 110 }] },
+  { id: 'ORD-006', customer: 'Yaa Appiah', email: 'yaa@email.com', phone: '0277889900', region: 'Eastern', total: 165, status: 'pending', date: '2025-01-13', items: [{ name: 'Shea Butter Hair Cream', quantity: 3, price: 55 }] },
+  { id: 'ORD-007', customer: 'Kwame Boateng', email: 'kwame@email.com', phone: '0231234567', region: 'Northern', total: 285, status: 'cancelled', date: '2025-01-12', items: [{ name: 'Ankara Maxi Dress', quantity: 1, price: 285 }] },
+  { id: 'ORD-008', customer: 'Akosua Manu', email: 'akosua@email.com', phone: '0209876543', region: 'Volta', total: 520, status: 'delivered', date: '2025-01-12', items: [{ name: 'Kente Eyeshadow Palette', quantity: 2, price: 150 }, { name: 'Raw Shea Butter', quantity: 2, price: 110 }] },
 ];
 
 export const customers = [
