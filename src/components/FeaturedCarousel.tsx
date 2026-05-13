@@ -4,7 +4,7 @@ import { products } from "../utils/products";
 import { SafeImage } from "./SafeImage";
 
 interface FeaturedCarouselProps {
-  onAddToCart: (product: any) => void;
+  onAddToCart?: (product: any) => void;
 }
 
 export function FeaturedCarousel({ onAddToCart }: FeaturedCarouselProps) {
@@ -104,7 +104,7 @@ export function FeaturedCarousel({ onAddToCart }: FeaturedCarouselProps) {
                 {/* Quick Actions */}
                 <div className="absolute bottom-3 left-3 right-3 flex gap-2 translate-y-10 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
                   <button
-                    onClick={() => onAddToCart(product)}
+                    onClick={() => onAddToCart?.(product)}
                     className="flex-1 bg-white text-gray-800 py-2.5 rounded-lg font-medium text-sm flex items-center justify-center gap-2 hover:bg-pink-500 hover:text-white transition-colors"
                   >
                     <ShoppingBag size={16} />
