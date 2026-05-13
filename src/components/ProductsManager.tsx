@@ -47,11 +47,11 @@ export function ProductsManager({ hasPermission }: ProductsManagerProps) {
           <p className="text-sm text-gray-500">In Stock</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-gray-100">
-          <p className="text-2xl font-bold text-yellow-600">{products.filter(p => p.stock <= 10 && p.stock > 0).length}</p>
+          <p className="text-2xl font-bold text-yellow-600">{products.filter(p => Number(p.stock ?? 0) <= 10 && Number(p.stock ?? 0) > 0).length}</p>
           <p className="text-sm text-gray-500">Low Stock</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-gray-100">
-          <p className="text-2xl font-bold text-red-600">{products.filter(p => p.stock === 0).length}</p>
+          <p className="text-2xl font-bold text-red-600">{products.filter(p => Number(p.stock ?? 0) === 0).length}</p>
           <p className="text-sm text-gray-500">Out of Stock</p>
         </div>
       </div>

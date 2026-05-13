@@ -15,10 +15,11 @@ export function AdminProducts() {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.brand.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
+    const stock = Number(product.stock ?? 0);
     const matchesStock = stockFilter === 'all' || 
-                        (stockFilter === 'low' && product.stock <= 10 && product.stock > 0) ||
-                        (stockFilter === 'out' && product.stock === 0) ||
-                        (stockFilter === 'instock' && product.stock > 10);
+                        (stockFilter === 'low' && stock <= 10 && stock > 0) ||
+                        (stockFilter === 'out' && stock === 0) ||
+                        (stockFilter === 'instock' && stock > 10);
     return matchesSearch && matchesCategory && matchesStock;
   });
 
