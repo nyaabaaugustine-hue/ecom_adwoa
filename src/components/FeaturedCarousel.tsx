@@ -143,9 +143,9 @@ export function FeaturedCarousel({ onAddToCart }: FeaturedCarouselProps) {
                 
                 {/* Stock Indicator */}
                 <div className="mt-3 flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${product.stock > 10 ? 'bg-green-400' : product.stock > 0 ? 'bg-yellow-400' : 'bg-red-400'}`} />
+                  <span className={`w-2 h-2 rounded-full ${(product.stock ?? 0) > 10 ? 'bg-green-400' : (product.stock ?? 0) > 0 ? 'bg-yellow-400' : 'bg-red-400'}`} />
                   <span className="text-xs text-gray-500">
-                    {product.stock > 10 ? 'In Stock' : product.stock > 0 ? `Only ${product.stock} left` : 'Out of Stock'}
+                    {(product.stock ?? 0) > 10 ? 'In Stock' : (product.stock ?? 0) > 0 ? `Only ${product.stock} left` : 'Out of Stock'}
                   </span>
                 </div>
               </div>

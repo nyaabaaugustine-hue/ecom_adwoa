@@ -9,8 +9,8 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ onProductClick, onAddToCart }: ProductGridProps) {
-  const [hoveredProduct, setHoveredProduct] = useState(null);
-  const [favorites, setFavorites] = useState([]);
+  const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
+  const [favorites, setFavorites] = useState<number[]>([]);
   const [activeFilter, setActiveFilter] = useState("All");
 
   const filters = ["All", "Fashion", "Cosmetics", "Skincare", "Hair Care", "Accessories"];
@@ -19,7 +19,7 @@ export function ProductGrid({ onProductClick, onAddToCart }: ProductGridProps) {
     ? products.slice(0, 12) 
     : products.filter(p => p.category === activeFilter).slice(0, 12);
 
-  const toggleFavorite = (productId, e) => {
+  const toggleFavorite = (productId: number, e: React.MouseEvent) => {
     e.stopPropagation();
     setFavorites((prev) =>
       prev.includes(productId)
