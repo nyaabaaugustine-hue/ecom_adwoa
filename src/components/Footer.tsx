@@ -123,7 +123,7 @@ export function Footer() {
             &copy; {currentYear} Adwoa&apos;s Beauty &amp; Fashion. All rights reserved.
           </p>
           <p className="flex items-center gap-1.5">
-            Made with <Heart size={12} className="text-rose-400 fill-rose-400" /> in Ghana 🇬🇭
+            Developed By TGNE Solutions . Tema
           </p>
           <div className="flex gap-5">
             {["Privacy Policy", "Terms of Service", "Cookie Policy"].map((link) => (
