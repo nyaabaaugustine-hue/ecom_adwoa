@@ -3,7 +3,7 @@ import { SafeImage } from "./SafeImage";
 import { categories } from "../utils/products";
 
 export function Categories() {
-  const [activeCategory, setActiveCategory] = useState(null);
+  const [activeCategory, setActiveCategory] = useState<number | null>(null);
 
   return (
     <section className="py-12 bg-white">
