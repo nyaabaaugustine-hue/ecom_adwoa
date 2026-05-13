@@ -2,12 +2,18 @@ import { useState } from "react";
 import { SafeImage } from "./SafeImage";
 import { X, Star, Heart, Minus, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 
-export function ProductModal({ product, onClose, onAddToCart }) {
+interface ProductModalProps {
+  product: any;
+  onClose: () => void;
+  onAddToCart?: (product: any) => void;
+}
+
+export function ProductModal({ product, onClose, onAddToCart }: ProductModalProps) {
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
 
   const handleAddToCart = () => {
-    onAddToCart({ ...product, quantity });
+    onAddToCart?.({ ...product, quantity });
     onClose();
   };
 

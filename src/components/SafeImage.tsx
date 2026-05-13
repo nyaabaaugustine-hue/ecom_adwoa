@@ -35,12 +35,16 @@ export function SafeImage({
   const safeSrc = getSafeImageUrl(src);
 
   return (
-    <div 
-      className={cn(
-        "relative overflow-hidden bg-gray-100", 
-        className
-      )}
-      style={!fill ? { width: width ? `${width}px` : '100%', height: height ? `${height}px` : 'auto' } : undefined}
+    <div
+      className={cn("relative overflow-hidden bg-gray-100", fill && "h-full w-full")}
+      style={
+        !fill
+          ? {
+              width: width ? `${width}px` : "100%",
+              height: height ? `${height}px` : "auto",
+            }
+          : undefined
+      }
     >
       {/* Shimmer Skeleton */}
       {isLoading && (
@@ -56,6 +60,7 @@ export function SafeImage({
         onLoad={() => setLoading(false)}
         className={cn(
           "duration-700 ease-in-out",
+          className,
           isLoading ? "scale-110 blur-2xl grayscale" : "scale-100 blur-0 grayscale-0"
         )}
         {...props}

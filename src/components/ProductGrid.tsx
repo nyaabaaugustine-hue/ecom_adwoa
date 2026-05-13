@@ -3,7 +3,12 @@ import { Heart, Star, Eye, ArrowRight } from "lucide-react";
 import { products } from "../utils/products";
 import { SafeImage } from "./SafeImage";
 
-export function ProductGrid({ onProductClick, onAddToCart }) {
+interface ProductGridProps {
+  onProductClick: (product: any) => void;
+  onAddToCart?: (product: any) => void;
+}
+
+export function ProductGrid({ onProductClick, onAddToCart }: ProductGridProps) {
   const [hoveredProduct, setHoveredProduct] = useState(null);
   const [favorites, setFavorites] = useState([]);
   const [activeFilter, setActiveFilter] = useState("All");

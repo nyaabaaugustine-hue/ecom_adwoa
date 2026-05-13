@@ -31,7 +31,7 @@ function HomeContent() {
   const [currentPage, setCurrentPage] = useState<Page>("home");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
-  const { items: cartItems } = useCart();
+  const { items: cartItems, addItem, removeItem, updateQuantity } = useCart();
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleLogin = (user: User) => {
@@ -91,20 +91,27 @@ function HomeContent() {
       <main>
         <Hero />
         <CategorySection />
-        <FeaturedCarousel />
-        <ProductGrid onProductClick={setSelectedProduct} />
+        <FeaturedCarousel onAddToCart={addItem} />
+        <ProductGrid onProductClick={setSelectedProduct} onAddToCart={addItem} />
         <PromoBanner />
         <Testimonials />
         <Newsletter />
       </main>
       <Footer />
 
-      <Cart open={cartOpen} onClose={() => setCartOpen(false)} />
+      <Cart 
+        isOpen={cartOpen} 
+        onClose={() => setCartOpen(false)} 
+        items={cartItems}
+        onRemove={removeItem}
+        onUpdateQuantity={updateQuantity}
+      />
 
       {selectedProduct && (
         <ProductModal
           product={selectedProduct}
           onClose={() => setSelectedProduct(null)}
+          onAddToCart={addItem}
         />
       )}
 

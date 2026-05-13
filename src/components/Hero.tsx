@@ -51,7 +51,7 @@ export function Hero() {
 
           {/* Hero Image */}
           <div className="relative order-1 md:order-2">
-            <div className="aspect-[4/5] md:aspect-square rounded-lg overflow-hidden bg-pink-50">
+            <div className="relative aspect-[4/5] md:aspect-square rounded-lg overflow-hidden bg-pink-50">
               <SafeImage
                 src="adaw_tld2fa"
                 alt="African Fashion"

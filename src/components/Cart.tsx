@@ -1,7 +1,15 @@
 import { X, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { SafeImage } from "./SafeImage";
 
-export function Cart({ isOpen, onClose, items = [], onRemove, onUpdateQuantity }) {
+interface CartProps {
+  isOpen: boolean;
+  onClose: () => void;
+  items?: any[];
+  onRemove?: (id: number) => void;
+  onUpdateQuantity?: (id: number, quantity: number) => void;
+}
+
+export function Cart({ isOpen, onClose, items = [], onRemove, onUpdateQuantity }: CartProps) {
   const total = (items ?? []).reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -81,14 +89,14 @@ export function Cart({ isOpen, onClose, items = [], onRemove, onUpdateQuantity }
                   </div>
                   <div className="flex flex-col items-end justify-between">
                     <button
-                      onClick={() => onRemove(item.id)}
+                      onClick={() => onRemove?.(item.id)}
                       className="text-gray-300 hover:text-red-500 transition-colors"
                     >
                       <Trash2 size={16} />
                     </button>
                     <div className="flex items-center gap-1 bg-white rounded-md p-1">
                       <button
-                        onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+                        onClick={() => onUpdateQuantity?.(item.id, item.quantity - 1)}
                         className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-gray-600"
                       >
                         <Minus size={12} />
@@ -97,7 +105,7 @@ export function Cart({ isOpen, onClose, items = [], onRemove, onUpdateQuantity }
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                        onClick={() => onUpdateQuantity?.(item.id, item.quantity + 1)}
                         className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-gray-600"
                       >
                         <Plus size={12} />
