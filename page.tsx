@@ -1,4 +1,4 @@
-import { SafeImage } from "../../components/SafeImage";
+import { SafeImage } from "./src/components/SafeImage";
 
 export default function TestImagesPage() {
   return (

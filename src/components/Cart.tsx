@@ -1,21 +1,21 @@
-"use client";
 import { X, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
-import { useCart } from "../context/CartContext";
+import { SafeImage } from "./SafeImage";
 
-interface CartProps {
-  open: boolean;
-  onClose: () => void;
-}
+export function Cart({ isOpen, onClose, items = [], onRemove, onUpdateQuantity }) {
+  const total = (items ?? []).reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
-export function Cart({ open, onClose }: CartProps) {
-  const { items, removeItem, updateQuantity, total } = useCart();
-
-  if (!open) return null;
+  if (!isOpen) return null;
 
   return (
     <>
       {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
+      <div
+        className="fixed inset-0 bg-black/50 z-50"
+        onClick={onClose}
+      />
 
       {/* Cart Panel */}
       <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 shadow-2xl flex flex-col">
@@ -64,32 +64,31 @@ export function Cart({ open, onClose }: CartProps) {
                   className="flex gap-4 bg-gray-50 rounded-lg p-3"
                 >
                   <div className="w-20 h-20 bg-white rounded-md overflow-hidden flex-shrink-0">
-                    <img
+                    <SafeImage
                       src={item.image}
                       alt={item.name}
-                      className="w-full h-full object-cover"
+                      width={80}
+                      height={80}
+                      className="object-cover"
                     />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-gray-800 text-sm truncate">
-                      {item.name}
-                    </h4>
+                    <h4 className="font-medium text-gray-800 text-sm truncate">{item.name}</h4>
+                    <p className="text-gray-400 text-xs">{item.brand}</p>
                     <p className="text-pink-500 font-medium text-sm mt-1">
                       GHc{item.price}
                     </p>
                   </div>
                   <div className="flex flex-col items-end justify-between">
                     <button
-                      onClick={() => removeItem(item.id)}
+                      onClick={() => onRemove(item.id)}
                       className="text-gray-300 hover:text-red-500 transition-colors"
                     >
                       <Trash2 size={16} />
                     </button>
                     <div className="flex items-center gap-1 bg-white rounded-md p-1">
                       <button
-                        onClick={() =>
-                          updateQuantity(item.id, item.quantity - 1)
-                        }
+                        onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
                         className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-gray-600"
                       >
                         <Minus size={12} />
@@ -98,9 +97,7 @@ export function Cart({ open, onClose }: CartProps) {
                         {item.quantity}
                       </span>
                       <button
-                        onClick={() =>
-                          updateQuantity(item.id, item.quantity + 1)
-                        }
+                        onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
                         className="w-6 h-6 flex items-center justify-center hover:bg-gray-100 rounded text-gray-600"
                       >
                         <Plus size={12} />
@@ -130,11 +127,11 @@ export function Cart({ open, onClose }: CartProps) {
                 GHc{total.toFixed(2)}
               </span>
             </div>
-            <button className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-4 text-sm tracking-wide rounded-md mb-2 transition-colors">
+            <button className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-4 text-sm tracking-wide rounded-md mb-2">
               CHECKOUT
             </button>
             <p className="text-center text-gray-400 text-xs">
-              Secure checkout with Mobile Money &amp; Cards
+              Secure checkout with Mobile Money & Cards
             </p>
           </div>
         )}

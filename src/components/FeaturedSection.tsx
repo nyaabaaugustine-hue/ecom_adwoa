@@ -1,4 +1,5 @@
 import { Truck, Shield, Clock, Award } from "lucide-react";
+import { SafeImage } from "./SafeImage";
 
 const features = [
   {
@@ -50,10 +51,12 @@ export function FeaturedSection() {
             </div>
             <div className="hidden md:flex justify-center">
               <div className="relative">
-                <img
+                <SafeImage
                   src="https://res.cloudinary.com/dwsl2ktt2/image/upload/v1778669947/adaw_tld2fa.avif"
                   alt="Ankara Fashion"
-                  className="w-48 h-48 rounded-full object-cover shadow-2xl"
+                  width={192}
+                  height={192}
+                  className="rounded-full object-cover shadow-2xl"
                 />
                 <div className="absolute -top-4 -right-4 w-20 h-20 bg-white rounded-full flex items-center justify-center text-pink-500 font-bold shadow-lg text-xl">
                   30%

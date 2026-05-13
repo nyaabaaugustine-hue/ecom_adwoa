@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Plus, Search, Edit, Trash2, Eye, Filter, Download, Upload, Package } from "lucide-react";
 import { products } from "../utils/products";
 
+import { SafeImage } from "./SafeImage";
 export function AdminProducts() {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -136,7 +137,13 @@ export function AdminProducts() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <img src={product.image} alt={product.name} className="w-12 h-12 object-cover rounded-lg" />
+                      <SafeImage
+                        src={product.image}
+                        alt={product.name}
+                        width={48}
+                        height={48}
+                        className="object-cover rounded-lg"
+                      />
                       <div>
                         <p className="text-sm font-medium text-gray-800">{product.name}</p>
                         <p className="text-xs text-gray-400">{product.brand}</p>
@@ -156,18 +163,18 @@ export function AdminProducts() {
                   </td>
                   <td className="px-6 py-4">
                     <span className={`text-sm font-medium ${
-                      product.stock > 10 ? 'text-green-600' :
-                      product.stock > 0 ? 'text-yellow-600' : 'text-red-600'
+                      Number(product.stock ?? 0) > 10 ? 'text-green-600' :
+                      Number(product.stock ?? 0) > 0 ? 'text-yellow-600' : 'text-red-600'
                     }`}>
-                      {product.stock}
+                      {product.stock ?? 0}
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`px-2 py-1 text-xs rounded-full ${
-                      product.stock > 10 ? 'bg-green-100 text-green-600' :
-                      product.stock > 0 ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
+                      Number(product.stock ?? 0) > 10 ? 'bg-green-100 text-green-600' :
+                      Number(product.stock ?? 0) > 0 ? 'bg-yellow-100 text-yellow-600' : 'bg-red-100 text-red-600'
                     }`}>
-                      {product.stock > 10 ? 'Active' : product.stock > 0 ? 'Low Stock' : 'Out of Stock'}
+                      {Number(product.stock ?? 0) > 10 ? 'Active' : Number(product.stock ?? 0) > 0 ? 'Low Stock' : 'Out of Stock'}
                     </span>
                   </td>
                   <td className="px-6 py-4">

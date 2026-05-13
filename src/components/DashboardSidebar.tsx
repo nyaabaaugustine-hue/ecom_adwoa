@@ -1,4 +1,5 @@
 import { User } from "../utils/auth";
+import { SafeImage } from "./SafeImage";
 import { 
   LayoutDashboard, 
   ShoppingBag, 
@@ -48,10 +49,12 @@ export function DashboardSidebar({ user, activeTab, onTabChange, onLogout, hasPe
       {/* User Info */}
       <div className="p-4 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <img
+          <SafeImage
             src={user.avatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop'}
             alt={user.name}
-            className="w-10 h-10 rounded-full object-cover"
+            width={40}
+            height={40}
+            className="rounded-full object-cover"
           />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-gray-800 truncate">{user.name}</p>

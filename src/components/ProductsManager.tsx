@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Search, Plus, Edit, Trash2, Eye, Package, AlertCircle } from "lucide-react";
+import { SafeImage } from "./SafeImage";
 import { products } from "../utils/products";
 
 interface ProductsManagerProps {
@@ -86,10 +87,11 @@ export function ProductsManager({ hasPermission }: ProductsManagerProps) {
         {filteredProducts.map((product) => (
           <div key={product.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden group">
             <div className="relative aspect-square bg-gray-50">
-              <img
+              <SafeImage
                 src={product.image}
                 alt={product.name}
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
               />
               {product.badge && (
                 <span className={`absolute top-2 left-2 px-2 py-1 text-xs font-medium rounded ${
@@ -164,7 +166,12 @@ export function ProductsManager({ hasPermission }: ProductsManagerProps) {
             </div>
             <div className="p-6 grid md:grid-cols-2 gap-6">
               <div className="aspect-square bg-gray-50 rounded-lg overflow-hidden">
-                <img src={selectedProduct.image} alt={selectedProduct.name} className="w-full h-full object-cover" />
+                <SafeImage
+                  src={selectedProduct.image}
+                  alt={selectedProduct.name}
+                  fill
+                  className="object-cover"
+                />
               </div>
               <div>
                 <p className="text-sm text-pink-500 font-medium">{selectedProduct.category}</p>

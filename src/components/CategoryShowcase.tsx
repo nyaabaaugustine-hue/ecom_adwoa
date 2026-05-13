@@ -1,39 +1,40 @@
 import { ArrowRight } from "lucide-react";
+import { SafeImage } from "./SafeImage";
 
 const categories = [
   {
     id: 1,
     name: "Fashion",
     subtitle: "Ankara & Kente",
-    image: "https://images.unsplash.com/photo-1590779070934-0d5e57a7fd48?w=500&h=600&fit=crop",
+    image: "adaw_tld2fa",
     count: "10 Products",
   },
   {
     id: 2,
     name: "Cosmetics",
     subtitle: "Makeup Essentials",
-    image: "https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=500&h=600&fit=crop",
+    image: "uyy_ixp2x1",
     count: "10 Products",
   },
   {
     id: 3,
     name: "Skincare",
     subtitle: "Natural Glow",
-    image: "https://images.unsplash.com/photo-1556228720-195a672d1a27?w=500&h=600&fit=crop",
+    image: "lk_oyxxa6",
     count: "10 Products",
   },
   {
     id: 4,
     name: "Hair Care",
     subtitle: "Natural Hair Love",
-    image: "https://images.unsplash.com/photo-1522337660859-02fbefca4702?w=500&h=600&fit=crop",
+    image: "uyy_ixp2x1",
     count: "10 Products",
   },
   {
     id: 5,
     name: "Accessories",
     subtitle: "Jewelry & More",
-    image: "https://images.unsplash.com/photo-1584917865442-de89df76afd3?w=500&h=600&fit=crop",
+    image: "adaw_tld2fa",
     count: "10 Products",
   },
 ];
@@ -58,10 +59,11 @@ export function CategoryShowcase() {
               href="#"
               className="group relative overflow-hidden rounded-lg aspect-[3/4] md:aspect-[2/3]"
             >
-              <img
+              <SafeImage
                 src={category.image}
                 alt={category.name}
-                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                fill
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-4">
