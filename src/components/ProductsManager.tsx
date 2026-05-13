@@ -44,7 +44,7 @@ export function ProductsManager({ hasPermission }: ProductsManagerProps) {
           <p className="text-sm text-gray-500">Total Products</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-gray-100">
-          <p className="text-2xl font-bold text-green-600">{products.filter(p => p.stock > 10).length}</p>
+          <p className="text-2xl font-bold text-green-600">{products.filter(p => (p.stock ?? 0) > 10).length}</p>
           <p className="text-sm text-gray-500">In Stock</p>
         </div>
         <div className="bg-white rounded-xl p-4 border border-gray-100">
@@ -134,11 +134,11 @@ export function ProductsManager({ hasPermission }: ProductsManagerProps) {
               <div className="flex items-center justify-between">
                 <p className="text-pink-500 font-medium">GHc{product.price}</p>
                 <span className={`text-xs px-2 py-0.5 rounded ${
-                  product.stock > 10 ? 'bg-green-100 text-green-600' :
-                  product.stock > 0 ? 'bg-yellow-100 text-yellow-600' :
+                  (product.stock ?? 0) > 10 ? 'bg-green-100 text-green-600' :
+                  (product.stock ?? 0) > 0 ? 'bg-yellow-100 text-yellow-600' :
                   'bg-red-100 text-red-600'
                 }`}>
-                  {product.stock > 0 ? `${product.stock} in stock` : 'Out of stock'}
+                  {(product.stock ?? 0) > 0 ? `${product.stock} in stock` : 'Out of stock'}
                 </span>
               </div>
             </div>

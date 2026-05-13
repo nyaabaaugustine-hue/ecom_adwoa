@@ -1,4 +1,19 @@
-export const products = [
+export interface Product {
+  id: number;
+  name: string;
+  brand: string;
+  price: number;
+  originalPrice?: number;
+  rating: number;
+  reviews: number;
+  category: string;
+  image: string;
+  badge?: string;
+  stock: number;
+  description: string;
+}
+
+export const products: Product[] = [
   // FASHION - ANKARA & AFRICAN WEAR (10 products)
   {
     id: 1,
@@ -264,6 +279,7 @@ export const products = [
     category: "Skincare",
     image: "lk_oyxxa6",
     badge: "Bestseller",
+    stock: 50,
     description: "Pure unrefined shea butter from Northern Ghana. Multi-purpose skin nourishment.",
   },
   {
@@ -276,6 +292,7 @@ export const products = [
     category: "Skincare",
     image: "lk_oyxxa6",
     badge: "Bestseller",
+    stock: 80,
     description: "Traditional African black soap handcrafted in Ghana. For all skin types.",
   },
   {
@@ -287,6 +304,7 @@ export const products = [
     reviews: 567,
     category: "Skincare",
     image: "lk_oyxxa6",
+    stock: 35,
     description: "Rich cocoa butter cream for deep moisturizing. Leaves skin glowing.",
   },
   {
@@ -298,6 +316,7 @@ export const products = [
     reviews: 234,
     category: "Skincare",
     image: "lk_oyxxa6",
+    stock: 28,
     description: "Pure baobab oil for face and body. Rich in vitamins and antioxidants.",
   },
   {
@@ -309,6 +328,7 @@ export const products = [
     reviews: 189,
     category: "Skincare",
     image: "lk_oyxxa6",
+    stock: 42,
     description: "Detoxifying face mask with moringa extracts. Clears and brightens skin.",
   },
   {
@@ -320,6 +340,7 @@ export const products = [
     reviews: 456,
     category: "Skincare",
     image: "lk_oyxxa6",
+    stock: 60,
     description: "Versatile coconut oil for hair and body. Pure and organic.",
   },
   {
@@ -331,6 +352,7 @@ export const products = [
     reviews: 678,
     category: "Skincare",
     image: "lk_oyxxa6",
+    stock: 55,
     description: "Set of 4 nourishing lip balms with shea butter. Natural flavors.",
   },
   {
@@ -342,6 +364,7 @@ export const products = [
     reviews: 345,
     category: "Skincare",
     image: "lk_oyxxa6",
+    stock: 48,
     description: "Pure aloe vera gel for soothing and healing. Multipurpose skincare.",
   },
   {
@@ -353,6 +376,7 @@ export const products = [
     reviews: 234,
     category: "Skincare",
     image: "lk_oyxxa6",
+    stock: 30,
     description: "Brightening cream with turmeric and shea butter. Evens skin tone.",
   },
   {
@@ -364,6 +388,7 @@ export const products = [
     reviews: 312,
     category: "Skincare",
     image: "lk_oyxxa6",
+    stock: 38,
     description: "Gentle face wash with raw Ghanaian honey. Cleanses without stripping.",
   },
 
@@ -378,6 +403,7 @@ export const products = [
     category: "Hair Care",
     image: "uyy_ixp2x1",
     badge: "Bestseller",
+    stock: 40,
     description: "Moisturizing hair cream with raw shea butter. Perfect for natural hair.",
   },
   {
@@ -389,6 +415,7 @@ export const products = [
     reviews: 345,
     category: "Hair Care",
     image: "uyy_ixp2x1",
+    stock: 25,
     description: "Deep conditioning hair mask with coconut oil. Repairs and strengthens.",
   },
   {
@@ -400,6 +427,7 @@ export const products = [
     reviews: 289,
     category: "Hair Care",
     image: "uyy_ixp2x1",
+    stock: 33,
     description: "Gentle cleansing shampoo with African black soap. Sulfate-free formula.",
   },
   {
@@ -411,6 +439,7 @@ export const products = [
     reviews: 423,
     category: "Hair Care",
     image: "uyy_ixp2x1",
+    stock: 20,
     description: "Lightweight hair serum with baobab oil. Adds shine without greasiness.",
   },
   {
@@ -423,6 +452,7 @@ export const products = [
     category: "Hair Care",
     image: "uyy_ixp2x1",
     badge: "Popular",
+    stock: 18,
     description: "Stimulating hair growth oil with moringa. Promotes healthy scalp.",
   },
   {
@@ -434,6 +464,7 @@ export const products = [
     reviews: 234,
     category: "Hair Care",
     image: "uyy_ixp2x1",
+    stock: 45,
     description: "Strong hold edge control with shea butter. Lays edges perfectly.",
   },
   {
@@ -445,6 +476,7 @@ export const products = [
     reviews: 378,
     category: "Hair Care",
     image: "uyy_ixp2x1",
+    stock: 30,
     description: "Moisturizing leave-in with hibiscus extract. Detangles and softens.",
   },
   {
@@ -456,6 +488,7 @@ export const products = [
     reviews: 456,
     category: "Hair Care",
     image: "uyy_ixp2x1",
+    stock: 22,
     description: "Jamaican black castor oil blend for hair growth. Thickens and strengthens.",
   },
   {
@@ -467,6 +500,7 @@ export const products = [
     reviews: 234,
     category: "Hair Care",
     image: "uyy_ixp2x1",
+    stock: 15,
     description: "Premium braiding hair extensions. Natural looking and durable.",
   },
   {
@@ -478,6 +512,7 @@ export const products = [
     reviews: 678,
     category: "Hair Care",
     image: "adaw_tld2fa",
+    stock: 50,
     description: "Beautiful satin bonnet in African print. Protects hair while sleeping.",
   },
 
@@ -492,6 +527,7 @@ export const products = [
     category: "Accessories",
     image: "adaw_tld2fa",
     badge: "New",
+    stock: 22,
     description: "Handmade gold beaded necklace and earring set. Traditional Ghanaian design.",
   },
   {
@@ -503,6 +539,7 @@ export const products = [
     reviews: 456,
     category: "Accessories",
     image: "adaw_tld2fa",
+    stock: 40,
     description: "Beautiful Ankara headwrap in vibrant colors. Multiple styling options.",
   },
   {
@@ -514,6 +551,7 @@ export const products = [
     reviews: 234,
     category: "Accessories",
     image: "adaw_tld2fa",
+    stock: 35,
     description: "Set of 5 wooden bead bracelets. Handcrafted by Ghanaian artisans.",
   },
   {
@@ -525,6 +563,7 @@ export const products = [
     reviews: 167,
     category: "Accessories",
     image: "jjb_pwzexw",
+    stock: 12,
     description: "Authentic Kente clutch bag for special occasions. Fully lined interior.",
   },
   {
@@ -536,6 +575,7 @@ export const products = [
     reviews: 312,
     category: "Accessories",
     image: "adaw_tld2fa",
+    stock: 48,
     description: "Beautiful cowrie shell earrings. Lightweight and elegant.",
   },
   {
@@ -548,6 +588,7 @@ export const products = [
     category: "Accessories",
     image: "adaw_tld2fa",
     badge: "Popular",
+    stock: 55,
     description: "Traditional waist beads in beautiful colors. Adjustable fit.",
   },
   {
@@ -559,6 +600,7 @@ export const products = [
     reviews: 234,
     category: "Accessories",
     image: "jjb_pwzexw",
+    stock: 18,
     description: "Spacious tote bag in Ankara print. Perfect for everyday use.",
   },
   {
@@ -570,6 +612,7 @@ export const products = [
     reviews: 189,
     category: "Accessories",
     image: "adaw_tld2fa",
+    stock: 27,
     description: "Handcrafted brass cuff bangle. Traditional Ghanaian design.",
   },
   {
@@ -581,6 +624,7 @@ export const products = [
     reviews: 178,
     category: "Accessories",
     image: "adaw_tld2fa",
+    stock: 32,
     description: "Versatile African print scarf. Can be worn multiple ways.",
   },
   {
@@ -592,6 +636,7 @@ export const products = [
     reviews: 345,
     category: "Accessories",
     image: "adaw_tld2fa",
+    stock: 20,
     description: "Bold statement earrings in gold. Perfect for special occasions.",
   },
 ];
