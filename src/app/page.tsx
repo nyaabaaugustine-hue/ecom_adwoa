@@ -78,6 +78,12 @@ function HomeContent() {
     }
   };
 
+  // Cart requests checkout: close cart, then open checkout modal
+  const handleCheckoutRequest = () => {
+    setCartOpen(false);
+    setCheckoutOpen(true);
+  };
+
   const handleLogin = (user: User) => {
     setCurrentUser(user);
     setLoginOpen(false);
@@ -144,15 +150,17 @@ function HomeContent() {
       </main>
       <Footer />
 
+      {/* Cart — z-40, opens checkout via handleCheckoutRequest */}
       <Cart
         isOpen={cartOpen}
         onClose={() => setCartOpen(false)}
         items={cartItems}
         onRemove={removeItem}
         onUpdateQuantity={updateQuantity}
-        onCheckout={() => setCheckoutOpen(true)}
+        onCheckout={handleCheckoutRequest}
       />
 
+      {/* CheckoutModal — z-50, always above cart */}
       <CheckoutModal
         isOpen={checkoutOpen}
         items={cartItems}
@@ -160,6 +168,7 @@ function HomeContent() {
         onClose={() => setCheckoutOpen(false)}
         onSuccess={(ref) => {
           clearCart();
+          setCheckoutOpen(false);
           router.push(`/checkout/success?ref=${ref}`);
         }}
       />
