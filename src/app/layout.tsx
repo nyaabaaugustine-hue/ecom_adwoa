@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import Script from "next/script";
 import { ThemeSwitcher } from "../components/ThemeSwitcher";
 import { PWAProvider } from "../components/PWAProvider";
+import { WhatsAppButton } from "../components/WhatsAppButton";
 import "./globals.css";
 
 const inter = Inter({
@@ -18,6 +19,9 @@ const playfair = Playfair_Display({
   display: "swap",
   weight: ["400", "500", "600", "700", "800"],
 });
+
+const LOGO_URL =
+  "https://res.cloudinary.com/dwsl2ktt2/image/upload/v1778724509/logo_fxelgm.png";
 
 export const metadata: Metadata = {
   title: {
@@ -43,6 +47,14 @@ export const metadata: Metadata = {
   creator: "Adwoa's Beauty",
   metadataBase: new URL("https://adwoasbeauty.com"),
   manifest: "/manifest.json",
+  // Favicon from Cloudinary logo
+  icons: {
+    icon: [
+      { url: LOGO_URL, type: "image/png" },
+    ],
+    apple: LOGO_URL,
+    shortcut: LOGO_URL,
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
@@ -55,6 +67,22 @@ export const metadata: Metadata = {
     siteName: "Adwoa's Beauty",
     locale: "en_GH",
     type: "website",
+    // This is the image shown when the link is shared on WhatsApp, Facebook, Twitter etc.
+    images: [
+      {
+        url: LOGO_URL,
+        width: 1200,
+        height: 630,
+        alt: "Adwoa's Beauty & Fashion",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Adwoa's Beauty — Ghana's Premier Women's Marketplace",
+    description:
+      "Authentic Ghanaian fashion, cosmetics & skincare. Free delivery across Ghana.",
+    images: [LOGO_URL],
   },
   robots: {
     index: true,
@@ -76,14 +104,19 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <head>
+        {/* Favicon — using Cloudinary logo directly */}
+        <link rel="icon" href={LOGO_URL} type="image/png" />
+        <link rel="shortcut icon" href={LOGO_URL} type="image/png" />
+        <link rel="apple-touch-icon" href={LOGO_URL} />
         {/* PWA / Apple */}
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className="font-sans antialiased">
         {children}
+        {/* Floating WhatsApp chat button */}
+        <WhatsAppButton />
         {/* PWA install prompt + service-worker registration */}
         <PWAProvider />
         {/* Global floating theme switcher */}

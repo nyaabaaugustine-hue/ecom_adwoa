@@ -208,12 +208,7 @@ export function Footer() {
             className="flex items-center gap-2 px-3 py-1.5 rounded-full"
             style={{ background: "linear-gradient(135deg, #0f172a, #1e293b)", border: "1px solid #334155" }}
           >
-            <div
-              className="w-4 h-4 rounded flex items-center justify-center flex-shrink-0"
-              style={{ background: "linear-gradient(135deg, #ec4899, #8b5cf6)" }}
-            >
-              <Zap size={9} className="text-white" />
-            </div>
+           
             <span className="text-slate-400 text-[10px] font-medium tracking-wide">
               Built by <span className="text-white font-bold">TGNE Solutions</span> · Tema
             </span>

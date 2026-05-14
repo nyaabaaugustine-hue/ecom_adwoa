@@ -1,7 +1,11 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { Search, Menu, User as UserIcon, ShoppingBag, Heart, X, LogOut, ChevronDown, LayoutDashboard } from "lucide-react";
 import { User } from "../utils/auth";
+
+const LOGO_URL =
+  "https://res.cloudinary.com/dwsl2ktt2/image/upload/v1778724509/logo_fxelgm.png";
 
 interface HeaderProps {
   cartCount: number;
@@ -48,18 +52,16 @@ export function Header({
           </button>
 
           {/* Logo */}
-          <a href="/" className="flex items-center gap-3 group flex-shrink-0">
-            <div className="relative">
-              <div className="w-11 h-11 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center shadow-md group-hover:shadow-pink-200 transition-shadow">
-                <span className="text-white font-serif text-xl font-bold">A</span>
-              </div>
-              <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full overflow-hidden border-2 border-white">
-                <div className="h-1/3 bg-red-600" />
-                <div className="h-1/3 bg-yellow-400 flex items-center justify-center">
-                  <div className="w-1.5 h-1.5 bg-black" style={{clipPath: 'polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)'}} />
-                </div>
-                <div className="h-1/3 bg-green-600" />
-              </div>
+          <a href="/" className="flex items-center gap-2.5 group flex-shrink-0">
+            <div className="relative w-12 h-12 rounded-full overflow-hidden shadow-md group-hover:shadow-pink-200 transition-shadow flex-shrink-0">
+              <Image
+                src={LOGO_URL}
+                alt="Adwoa's Beauty & Fashion"
+                fill
+                className="object-cover"
+                sizes="48px"
+                priority
+              />
             </div>
             <div className="hidden sm:block">
               <h1 className="text-xl font-serif font-bold text-gray-900 leading-none tracking-tight">Adwoa&apos;s</h1>
