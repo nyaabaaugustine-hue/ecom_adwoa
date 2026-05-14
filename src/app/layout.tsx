@@ -11,6 +11,8 @@ const inter = Inter({
   variable: "--font-inter",
   display: "swap",
   weight: ["400", "500", "600", "700"],
+  adjustFontFallback: false, // prevents build failure when Google Fonts is unreachable
+  preload: false,
 });
 
 const playfair = Playfair_Display({
@@ -18,6 +20,8 @@ const playfair = Playfair_Display({
   variable: "--font-playfair",
   display: "swap",
   weight: ["400", "500", "600", "700", "800"],
+  adjustFontFallback: false, // prevents build failure when Google Fonts is unreachable
+  preload: false,
 });
 
 const LOGO_URL =
