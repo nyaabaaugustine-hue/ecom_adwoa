@@ -1,78 +1,66 @@
 /**
  * lib/db.ts
- * Neon PostgreSQL client — single shared instance for the whole app.
- * DATABASE_URL is validated lazily (at call time, not at module load time)
- * so that Next.js can collect page data during build without a live DB.
+ * Neon PostgreSQL client — lazily initialised so Next.js can run
+ * `next build` without a DATABASE_URL environment variable.
+ *
+ * Usage in every API route:
+ *   import { getDb } from "@/lib/db";
+ *   const sql = getDb();
+ *   const rows = await sql`SELECT ...`;
  */
 
 import { neon, neonConfig } from "@neondatabase/serverless";
+import type { NeonQueryFunction } from "@neondatabase/serverless";
 
 // Enable connection pooling (recommended for serverless)
 neonConfig.fetchConnectionCache = true;
 
+// Module-level cached instance — created once per cold-start, never at import time
+let _client: NeonQueryFunction<false, false> | null = null;
+
 /**
- * Returns a tagged-template sql client.
+ * Returns a Neon sql tagged-template client.
  * Throws at *call time* (not import time) if DATABASE_URL is missing,
- * which prevents build-time errors when the env var is only set in prod.
+ * which means the build succeeds even without the env var.
  */
-function getDb() {
+export function getDb(): NeonQueryFunction<false, false> {
+  if (_client) return _client;
   const url = process.env.DATABASE_URL;
   if (!url) {
     throw new Error("DATABASE_URL environment variable is not set");
   }
-  return neon(url);
+  _client = neon(url);
+  return _client;
 }
 
 /**
- * Lazily-initialised sql client.
- * All API routes call this; it's never executed during `next build`.
- */
-export const sql = new Proxy({} as ReturnType<typeof neon>, {
-  get(_target, prop) {
-    const client = getDb();
-    const value = (client as any)[prop];
-    if (typeof value === "function") return value.bind(client);
-    return value;
-  },
-  apply(_target, _thisArg, args) {
-    const client = getDb();
-    return (client as any)(...args);
-  },
-});
-
-// Also allow direct use as a tagged-template function via default export trick
-export function createSql() {
-  return getDb();
-}
-
-/**
- * Run this once to create all tables (call from a setup script or
- * from an API route at /api/setup — protect it with a secret).
+ * Run this once to create all tables.
+ * Call from /api/setup (protect with a secret).
  */
 export async function createTables() {
-  const db = getDb();
+  const sql = getDb();
 
-  await db`
+  await sql`
     CREATE TABLE IF NOT EXISTS products (
-      id          SERIAL PRIMARY KEY,
-      name        TEXT NOT NULL,
-      brand       TEXT NOT NULL,
-      price       NUMERIC(10,2) NOT NULL,
+      id            SERIAL PRIMARY KEY,
+      name          TEXT NOT NULL,
+      brand         TEXT NOT NULL,
+      price         NUMERIC(10,2) NOT NULL,
       original_price NUMERIC(10,2),
-      rating      NUMERIC(3,2) DEFAULT 0,
-      reviews     INTEGER DEFAULT 0,
-      category    TEXT NOT NULL,
-      image       TEXT,
-      badge       TEXT,
-      stock       INTEGER DEFAULT 0,
-      description TEXT,
-      active      BOOLEAN DEFAULT TRUE,
-      created_at  TIMESTAMPTZ DEFAULT NOW(),
-      updated_at  TIMESTAMPTZ DEFAULT NOW()
+      rating        NUMERIC(3,2) DEFAULT 0,
+      reviews       INTEGER DEFAULT 0,
+      category      TEXT NOT NULL,
+      image         TEXT,
+      badge         TEXT,
+      stock         INTEGER DEFAULT 0,
+      description   TEXT,
+      active        BOOLEAN DEFAULT TRUE,
+      created_at    TIMESTAMPTZ DEFAULT NOW(),
+      updated_at    TIMESTAMPTZ DEFAULT NOW()
     )
   `;
 
-  await db`
+  await sql`
     CREATE TABLE IF NOT EXISTS customers (
       id         SERIAL PRIMARY KEY,
       name       TEXT NOT NULL,
@@ -84,30 +72,30 @@ export async function createTables() {
     )
   `;
 
-  await db`
+  await sql`
     ALTER TABLE customers ADD COLUMN IF NOT EXISTS address TEXT
   `;
 
-  await db`
+  await sql`
     CREATE TABLE IF NOT EXISTS orders (
-      id              SERIAL PRIMARY KEY,
-      reference       TEXT UNIQUE NOT NULL,
-      customer_id     INTEGER REFERENCES customers(id),
-      customer_name   TEXT,
-      customer_email  TEXT,
-      customer_phone  TEXT,
-      items           JSONB NOT NULL,
-      subtotal        NUMERIC(10,2) NOT NULL,
-      total           NUMERIC(10,2) NOT NULL,
-      status          TEXT DEFAULT 'pending',
-      payment_status  TEXT DEFAULT 'unpaid',
-      paystack_ref    TEXT,
-      created_at      TIMESTAMPTZ DEFAULT NOW(),
-      updated_at      TIMESTAMPTZ DEFAULT NOW()
+      id             SERIAL PRIMARY KEY,
+      reference      TEXT UNIQUE NOT NULL,
+      customer_id    INTEGER REFERENCES customers(id),
+      customer_name  TEXT,
+      customer_email TEXT,
+      customer_phone TEXT,
+      items          JSONB NOT NULL,
+      subtotal       NUMERIC(10,2) NOT NULL,
+      total          NUMERIC(10,2) NOT NULL,
+      status         TEXT DEFAULT 'pending',
+      payment_status TEXT DEFAULT 'unpaid',
+      paystack_ref   TEXT,
+      created_at     TIMESTAMPTZ DEFAULT NOW(),
+      updated_at     TIMESTAMPTZ DEFAULT NOW()
     )
   `;
 
-  await db`
+  await sql`
     CREATE TABLE IF NOT EXISTS order_items (
       id         SERIAL PRIMARY KEY,
       order_id   INTEGER REFERENCES orders(id) ON DELETE CASCADE,

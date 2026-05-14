@@ -1,17 +1,14 @@
 /**
  * POST /api/payment/initialize
  * Body: { email, name, phone, address, items, total }
- *
- * Creates a pending order in Neon and returns a unique reference.
- * The client-side Paystack popup uses this reference directly.
- * Server-side Paystack initialisation is NOT needed for the popup flow.
  */
 import { NextRequest, NextResponse } from "next/server";
-import { sql } from "@/lib/db";
+import { getDb } from "@/lib/db";
 import { generateReference } from "@/lib/paystack";
 
 export async function POST(req: NextRequest) {
   try {
+    const sql = getDb();
     const body = await req.json();
     const { email, name, phone, address, items, total } = body;
 
@@ -34,9 +31,10 @@ export async function POST(req: NextRequest) {
             address = COALESCE(EXCLUDED.address, customers.address)
     `;
 
-    const [customer] = await sql`
+    const customerRows = await sql`
       SELECT id FROM customers WHERE email = ${email}
     `;
+    const customer = customerRows[0];
 
     // Create pending order
     await sql`
