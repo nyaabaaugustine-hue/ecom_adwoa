@@ -53,6 +53,11 @@ export async function createTables() {
     )
   `;
 
+  // Add address column if upgrading an existing DB (safe to run multiple times)
+  await sql`
+    ALTER TABLE customers ADD COLUMN IF NOT EXISTS address TEXT
+  `;
+
   await sql`
     CREATE TABLE IF NOT EXISTS orders (
       id              SERIAL PRIMARY KEY,

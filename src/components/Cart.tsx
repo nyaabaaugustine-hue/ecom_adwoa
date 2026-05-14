@@ -7,9 +7,10 @@ interface CartProps {
   items?: any[];
   onRemove?: (id: number) => void;
   onUpdateQuantity?: (id: number, quantity: number) => void;
+  onCheckout?: () => void;
 }
 
-export function Cart({ isOpen, onClose, items = [], onRemove, onUpdateQuantity }: CartProps) {
+export function Cart({ isOpen, onClose, items = [], onRemove, onUpdateQuantity, onCheckout }: CartProps) {
   const total = (items ?? []).reduce(
     (sum, item) => sum + item.price * item.quantity,
     0
@@ -82,7 +83,7 @@ export function Cart({ isOpen, onClose, items = [], onRemove, onUpdateQuantity }
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-medium text-gray-800 text-sm truncate">{item.name}</h4>
-                    <p className="text-gray-400 text-xs">{item.brand}</p>
+                    {item.brand && <p className="text-gray-400 text-xs">{item.brand}</p>}
                     <p className="text-pink-500 font-medium text-sm mt-1">
                       GHc{item.price}
                     </p>
@@ -135,7 +136,13 @@ export function Cart({ isOpen, onClose, items = [], onRemove, onUpdateQuantity }
                 GHc{total.toFixed(2)}
               </span>
             </div>
-            <button className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-4 text-sm tracking-wide rounded-md mb-2">
+            <button 
+              onClick={() => {
+                onClose();
+                onCheckout?.();
+              }}
+              className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-4 text-sm tracking-wide rounded-md mb-2"
+            >
               CHECKOUT
             </button>
             <p className="text-center text-gray-400 text-xs">

@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Heart, Star, Eye, SlidersHorizontal, Grid, List, ChevronDown, X } from "lucide-react";
 import { AnnouncementBar } from "./AnnouncementBar";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 import { Cart } from "./Cart";
+import { CheckoutModal } from "./CheckoutModal";
 import { ProductModal } from "./ProductModal";
 import { LoginModal } from "./LoginModal";
 import { Dashboard } from "./Dashboard";

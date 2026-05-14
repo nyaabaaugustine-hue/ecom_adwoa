@@ -1,12 +1,11 @@
 import { 
-  TrendingUp, 
-  TrendingDown, 
   ShoppingBag, 
   Users, 
   Package,
   DollarSign,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Zap
 } from "lucide-react";
 import { dashboardStats, recentOrders, salesData, topProducts } from "../utils/dashboardData";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
@@ -49,10 +48,42 @@ export function DashboardHome({ hasPermission }: DashboardHomeProps) {
 
   return (
     <div className="p-6">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-serif font-medium text-gray-800">Dashboard Overview</h1>
-        <p className="text-gray-500 text-sm mt-1">Welcome back! Here's what's happening with your store.</p>
+      {/* ── Dashboard Header with TGNE Branding ── */}
+      <div className="mb-8 flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-serif font-bold text-gray-800">Dashboard Overview</h1>
+          <p className="text-gray-500 text-sm mt-1">Welcome back! Here&apos;s what&apos;s happening with your store.</p>
+        </div>
+
+        {/* TGNE Solutions Badge */}
+        <div
+          className="flex items-center gap-2.5 px-4 py-2.5 rounded-2xl shadow-sm border"
+          style={{
+            background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+            borderColor: "#334155",
+          }}
+        >
+          <div
+            className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0"
+            style={{ background: "linear-gradient(135deg, #ec4899, #8b5cf6)" }}
+          >
+            <Zap size={13} className="text-white" />
+          </div>
+          <div>
+            <p className="text-white font-bold text-xs leading-tight">TGNE Solutions</p>
+            <p className="text-slate-400 text-[9px] uppercase tracking-widest">Admin Portal</p>
+          </div>
+          <div
+            className="h-4 w-px mx-1"
+            style={{ background: "#475569" }}
+          />
+          <div
+            className="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full"
+            style={{ background: "linear-gradient(90deg,#ec4899,#8b5cf6)", color: "#fff" }}
+          >
+            v2.0
+          </div>
+        </div>
       </div>
 
       {/* Stats Grid */}
@@ -60,13 +91,13 @@ export function DashboardHome({ hasPermission }: DashboardHomeProps) {
         {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+            <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
               <div className="flex items-center justify-between mb-4">
-                <div className={`w-12 h-12 ${stat.color} rounded-lg flex items-center justify-center`}>
+                <div className={`w-12 h-12 ${stat.color} rounded-xl flex items-center justify-center shadow-sm`}>
                   <Icon size={24} className="text-white" />
                 </div>
                 {stat.change !== 0 && (
-                  <div className={`flex items-center gap-1 text-sm ${
+                  <div className={`flex items-center gap-1 text-sm font-semibold ${
                     stat.change > 0 ? 'text-green-500' : 'text-red-500'
                   }`}>
                     {stat.change > 0 ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
@@ -75,7 +106,7 @@ export function DashboardHome({ hasPermission }: DashboardHomeProps) {
                 )}
               </div>
               <p className="text-2xl font-bold text-gray-800">{stat.value}</p>
-              <p className="text-gray-400 text-sm">{stat.title}</p>
+              <p className="text-gray-400 text-sm mt-0.5">{stat.title}</p>
             </div>
           );
         })}
@@ -85,7 +116,7 @@ export function DashboardHome({ hasPermission }: DashboardHomeProps) {
       <div className="grid lg:grid-cols-2 gap-6 mb-8">
         {/* Sales Chart */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-800 mb-4">Sales Overview</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Sales Overview</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={salesData}>
@@ -113,7 +144,7 @@ export function DashboardHome({ hasPermission }: DashboardHomeProps) {
 
         {/* Orders Chart */}
         <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-          <h3 className="text-lg font-medium text-gray-800 mb-4">Orders Overview</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Orders Overview</h3>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={salesData}>
@@ -140,7 +171,7 @@ export function DashboardHome({ hasPermission }: DashboardHomeProps) {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-800">Recent Orders</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Recent Orders</h3>
               {hasPermission('view_orders') && (
                 <button className="text-pink-500 text-sm font-medium hover:text-pink-600">
                   View All
@@ -176,7 +207,7 @@ export function DashboardHome({ hasPermission }: DashboardHomeProps) {
         <div className="bg-white rounded-xl shadow-sm border border-gray-100">
           <div className="p-6 border-b border-gray-100">
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-800">Top Products</h3>
+              <h3 className="text-lg font-semibold text-gray-800">Top Products</h3>
               {hasPermission('view_products') && (
                 <button className="text-pink-500 text-sm font-medium hover:text-pink-600">
                   View All
@@ -202,6 +233,14 @@ export function DashboardHome({ hasPermission }: DashboardHomeProps) {
             ))}
           </div>
         </div>
+      </div>
+
+      {/* TGNE Footer attribution inside dashboard */}
+      <div className="mt-8 text-center">
+        <p className="text-xs text-gray-300 flex items-center justify-center gap-1.5">
+          <Zap size={10} className="text-pink-300" />
+          Powered by <span className="font-semibold text-gray-400">TGNE Solutions</span> · Tema, Ghana
+        </p>
       </div>
     </div>
   );

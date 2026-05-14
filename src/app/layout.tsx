@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
+import Script from "next/script";
+import { ThemeSwitcher } from "../components/ThemeSwitcher";
 import "./globals.css";
 
 const inter = Inter({
@@ -66,7 +68,16 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        {children}
+        {/* Global floating theme switcher — rendered outside page trees */}
+        <ThemeSwitcher />
+        {/* Paystack Inline JS — loaded lazily, available on window.PaystackPop */}
+        <Script
+          src="https://js.paystack.co/v1/inline.js"
+          strategy="lazyOnload"
+        />
+      </body>
     </html>
   );
 }

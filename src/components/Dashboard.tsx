@@ -1,3 +1,4 @@
+"use client";
 import { useState } from "react";
 import { User } from "../utils/auth";
 import { DashboardSidebar } from "./DashboardSidebar";
