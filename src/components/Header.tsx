@@ -26,15 +26,24 @@ export function Header({
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
-  const categories = [
-    { name: "Shop All", href: "/shop" },
+  const primaryLinks = [
+    { name: "Home", href: "/" },
+    { name: "Shop", href: "/shop" },
     { name: "Fashion", href: "/fashion" },
     { name: "Cosmetics", href: "/cosmetics" },
     { name: "Skincare", href: "/skincare" },
-    { name: "Hair Care", href: "/shop" },
-    { name: "Accessories", href: "/shop" },
     { name: "Sale", href: "/shop", highlight: true },
+  ];
+
+  const pageLinks = [
+    { name: "About", href: "/about" },
+    { name: "FAQs", href: "/faqs" },
+    { name: "Size Guide", href: "/size-guide" },
+    { name: "Track Order", href: "/track-order" },
+    { name: "Blog", href: "/blog" },
+    { name: "Contact", href: "/contact" },
   ];
 
   return (
@@ -70,24 +79,53 @@ export function Header({
           </a>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
-            {categories.map((cat) => (
+          <nav className="hidden md:flex items-center gap-6 flex-wrap" aria-label="Main navigation">
+            {primaryLinks.map((link) => (
               <a
-                key={cat.name}
-                href={(cat as any).href}
+                key={link.name}
+                href={link.href}
                 className={`text-sm font-medium transition-colors relative group/link ${
-                  (cat as any).highlight ? "text-pink-500 font-bold" : "text-gray-600 hover:text-gray-900"
+                  link.highlight ? "text-pink-500 font-bold" : "text-gray-600 hover:text-gray-900"
                 }`}
               >
-                {cat.name}
-                {!(cat as any).highlight && (
+                {link.name}
+                {!link.highlight && (
                   <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-pink-400 group-hover/link:w-full transition-all duration-300" />
                 )}
-                {(cat as any).highlight && (
+                {link.highlight && (
                   <span className="absolute -top-2 -right-3 bg-red-500 text-white text-[8px] font-bold px-1 py-0.5 rounded uppercase">HOT</span>
                 )}
               </a>
             ))}
+
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setMoreOpen(!moreOpen)}
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                aria-expanded={moreOpen}
+                aria-controls="more-menu"
+              >
+                More
+                <ChevronDown size={14} className="text-gray-400" />
+              </button>
+              {moreOpen && (
+                <div id="more-menu" className="absolute right-0 mt-3 w-52 rounded-3xl border border-gray-200 bg-white shadow-xl ring-1 ring-black ring-opacity-5">
+                  <div className="py-2">
+                    {pageLinks.map((link) => (
+                      <a
+                        key={link.name}
+                        href={link.href}
+                        onClick={() => setMoreOpen(false)}
+                        className="block px-4 py-3 text-sm text-gray-700 hover:bg-pink-50 hover:text-pink-600 transition-colors"
+                      >
+                        {link.name}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </nav>
 
           {/* Actions */}
@@ -154,19 +192,35 @@ export function Header({
       {mobileMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-100 shadow-lg">
           <nav className="flex flex-col py-2">
-            {categories.map((cat) => (
-              <a key={cat.name} href={(cat as any).href}
+            <div className="px-6 py-3 text-xs uppercase tracking-[0.3em] text-gray-400">Browse</div>
+            {primaryLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.href}
                 className={`px-6 py-3.5 text-sm font-medium flex items-center justify-between ${
-                  (cat as any).highlight ? "text-pink-500 font-bold" : "text-gray-700 hover:text-pink-500 hover:bg-pink-50"
+                  link.highlight ? "text-pink-500 font-bold" : "text-gray-700 hover:text-pink-500 hover:bg-pink-50"
                 } transition-colors`}
                 onClick={() => setMobileMenuOpen(false)}
               >
-                {cat.name}
-                {(cat as any).highlight && (
+                {link.name}
+                {link.highlight && (
                   <span className="bg-red-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded uppercase">HOT</span>
                 )}
               </a>
             ))}
+
+            <div className="px-6 py-3 text-xs uppercase tracking-[0.3em] text-gray-400">More pages</div>
+            {pageLinks.map((link) => (
+              <a
+                key={link.name}
+                href={link.href}
+                className="px-6 py-3.5 text-sm font-medium text-gray-700 hover:text-pink-500 hover:bg-pink-50 transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {link.name}
+              </a>
+            ))}
+
             <div className="border-t border-gray-100 px-6 pt-4 pb-3 flex flex-col gap-2 mt-1">
               {isAuthenticated && user ? (
                 <>

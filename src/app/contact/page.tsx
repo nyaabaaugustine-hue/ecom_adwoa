@@ -4,7 +4,7 @@ import { useState } from "react";
 import { MapPin, Phone, Mail, Clock, Send, CheckCircle, MessageCircle, Instagram, Facebook } from "lucide-react";
 import { AnnouncementBar } from "../../components/AnnouncementBar";
 import { Footer } from "../../components/Footer";
-import { Header } from "../../components/Header";
+import { StaticHeader } from "../../components/StaticHeader";
 
 const contactInfo = [
   { icon: MapPin, title: "Visit Us", lines: ["Oxford Street, Osu", "Accra, Ghana"], color: "text-pink-500", bg: "bg-pink-50" },
@@ -29,7 +29,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-white">
       <AnnouncementBar />
-      <Header cartCount={0} onCartClick={() => {}} onDashboardClick={() => {}} isAuthenticated={false} user={null} onLogout={() => {}} />
+      <StaticHeader />
 
       {/* Hero */}
       <section className="bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 py-20 text-center overflow-hidden relative">

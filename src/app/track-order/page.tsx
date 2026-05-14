@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Search, Package, Truck, CheckCircle, Clock, MapPin, Phone, AlertCircle } from "lucide-react";
 import { AnnouncementBar } from "../../components/AnnouncementBar";
 import { Footer } from "../../components/Footer";
-import { Header } from "../../components/Header";
+import { StaticHeader } from "../../components/StaticHeader";
 
 const demoOrders: Record<string, { status: string; customer: string; items: string[]; placed: string; eta: string; steps: { label: string; done: boolean; active: boolean; time: string }[] }> = {
   "ADW-2024-001": {
@@ -60,7 +60,7 @@ export default function TrackOrderPage() {
   return (
     <div className="min-h-screen bg-white">
       <AnnouncementBar />
-      <Header cartCount={0} onCartClick={() => {}} onDashboardClick={() => {}} isAuthenticated={false} user={null} onLogout={() => {}} />
+      <StaticHeader />
 
       <section className="bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 py-20 text-center relative overflow-hidden">
         <div className="pointer-events-none absolute -top-16 -right-16 w-64 h-64 bg-pink-200/30 rounded-full blur-3xl" />

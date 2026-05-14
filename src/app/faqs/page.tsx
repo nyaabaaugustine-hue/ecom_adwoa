@@ -4,7 +4,7 @@ import { useState } from "react";
 import { ChevronDown, ChevronUp, Search } from "lucide-react";
 import { AnnouncementBar } from "../../components/AnnouncementBar";
 import { Footer } from "../../components/Footer";
-import { Header } from "../../components/Header";
+import { StaticHeader } from "../../components/StaticHeader";
 
 const categories = ["All", "Orders & Delivery", "Returns", "Payments", "Products", "Account"];
 
@@ -40,7 +40,7 @@ export default function FAQsPage() {
   return (
     <div className="min-h-screen bg-white">
       <AnnouncementBar />
-      <Header cartCount={0} onCartClick={() => {}} onDashboardClick={() => {}} isAuthenticated={false} user={null} onLogout={() => {}} />
+      <StaticHeader />
 
       {/* Hero */}
       <section className="bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 py-20 text-center overflow-hidden relative">

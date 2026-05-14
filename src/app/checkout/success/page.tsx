@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { CheckCircle, Package, Truck, Clock, ArrowRight } from "lucide-react";
 import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
+import { StaticHeader } from "@/components/StaticHeader";
 import { AnnouncementBar } from "@/components/AnnouncementBar";
 
 function SuccessContent() {
@@ -143,7 +143,7 @@ export default function CheckoutSuccessPage() {
   return (
     <div className="min-h-screen bg-white">
       <AnnouncementBar />
-      <Header cartCount={0} onCartClick={() => {}} onDashboardClick={() => {}} isAuthenticated={false} user={null} onLogout={() => {}} />
+      <StaticHeader />
       <Suspense fallback={
         <div className="flex items-center justify-center min-h-96">
           <div className="text-center">

@@ -1,6 +1,6 @@
 import { AnnouncementBar } from "../../components/AnnouncementBar";
 import { Footer } from "../../components/Footer";
-import { Header } from "../../components/Header";
+import { StaticHeader } from "../../components/StaticHeader";
 import { Ruler, Info } from "lucide-react";
 
 const sizeCharts = {
@@ -57,7 +57,7 @@ export default function SizeGuidePage() {
   return (
     <div className="min-h-screen bg-white">
       <AnnouncementBar />
-      <Header cartCount={0} onCartClick={() => {}} onDashboardClick={() => {}} isAuthenticated={false} user={null} onLogout={() => {}} />
+      <StaticHeader />
 
       <section className="bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 py-20 text-center overflow-hidden relative">
         <div className="pointer-events-none absolute -top-16 -right-16 w-64 h-64 bg-pink-200/30 rounded-full blur-3xl" />

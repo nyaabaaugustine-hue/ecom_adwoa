@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Heart, Users, Truck, Leaf, Award, MapPin, Phone, Mail, ArrowRight, Star } from "lucide-react";
 import { AnnouncementBar } from "../../components/AnnouncementBar";
 import { Footer } from "../../components/Footer";
-import { Header } from "../../components/Header";
+import { StaticHeader } from "../../components/StaticHeader";
 
 const values = [
   { icon: Heart, title: "Made with Love", desc: "Every product is carefully curated to celebrate Ghanaian women's beauty and style.", color: "text-pink-500", bg: "bg-pink-50" },
@@ -31,7 +31,7 @@ export default function AboutPage() {
   return (
     <div className="min-h-screen bg-white">
       <AnnouncementBar />
-      <Header cartCount={0} onCartClick={() => {}} onDashboardClick={() => {}} isAuthenticated={false} user={null} onLogout={() => {}} />
+      <StaticHeader />
 
       {/* Hero */}
       <section className="relative bg-gradient-to-br from-rose-50 via-pink-50 to-amber-50 py-24 overflow-hidden">
