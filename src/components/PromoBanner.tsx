@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Truck, ShieldCheck, RotateCcw, Headphones } from "lucide-react";
 
 const features = [
@@ -27,12 +28,12 @@ const features = [
   },
 ];
 
-const mobileMoneyProviders = [
-  { name: "MTN MoMo", color: "bg-yellow-400", text: "text-yellow-900" },
-  { name: "Vodafone Cash", color: "bg-red-500", text: "text-white" },
-  { name: "AirtelTigo", color: "bg-blue-600", text: "text-white" },
-  { name: "Visa", color: "bg-blue-700", text: "text-white" },
-  { name: "Mastercard", color: "bg-orange-500", text: "text-white" },
+const paymentLogos = [
+  { src: "https://res.cloudinary.com/dwsl2ktt2/image/upload/v1778721236/mtn_fb2z77.jpg",         alt: "MTN Mobile Money" },
+  { src: "https://res.cloudinary.com/dwsl2ktt2/image/upload/v1778721236/telecel_qpjsan.png",     alt: "Telecel Cash" },
+  { src: "https://res.cloudinary.com/dwsl2ktt2/image/upload/v1778721236/airteltigo_egkalj.jpg",  alt: "AirtelTigo Money" },
+  { src: "https://res.cloudinary.com/dwsl2ktt2/image/upload/v1778721235/visa_rgiuko.png",        alt: "Visa" },
+  { src: "https://res.cloudinary.com/dwsl2ktt2/image/upload/v1778721235/masetercard_eldi1v.png", alt: "Mastercard" },
 ];
 
 export function PromoBanner() {
@@ -69,9 +70,9 @@ export function PromoBanner() {
         </div>
       </section>
 
-      {/* Ghana-Specific Promo Banner */}
+      {/* Promo Banner */}
       <section className="py-10 bg-gradient-to-r from-emerald-700 via-emerald-600 to-emerald-800 relative overflow-hidden">
-        {/* Background Pattern */}
+        {/* Background pattern */}
         <div
           className="absolute inset-0 opacity-10"
           style={{
@@ -80,49 +81,38 @@ export function PromoBanner() {
         />
 
         <div className="max-w-7xl mx-auto px-4 relative">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-            {/* Left: Flag + Text */}
-            <div className="flex items-center gap-4">
-              <span className="text-4xl">🇬🇭</span>
-              <div>
-                <h3 className="text-white font-bold text-lg md:text-xl">
-                  Proudly Made in Ghana
-                </h3>
-                <p className="text-emerald-200 text-sm">
-                  Supporting local artisans & businesses across all 16 regions
-                </p>
-              </div>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+
+            {/* Promo code */}
+            <div className="bg-white/10 backdrop-blur border border-white/20 rounded-2xl px-8 py-5 text-center shrink-0">
+              <p className="text-emerald-200 text-xs uppercase tracking-widest mb-1">Limited Offer</p>
+              <p className="text-white text-3xl font-bold tracking-widest">ADWOA15</p>
+              <p className="text-emerald-200 text-xs mt-1">15% off your first order</p>
             </div>
 
-            {/* Center: Code */}
-            <div className="bg-white/10 backdrop-blur border border-white/20 rounded-2xl px-6 py-4 text-center">
-              <p className="text-emerald-200 text-xs uppercase tracking-widest mb-1">
-                Limited Offer
+            {/* Payment logos */}
+            <div className="flex flex-col items-center md:items-end gap-3">
+              <p className="text-emerald-200 text-xs uppercase tracking-wider font-semibold">
+                Secure Payments Accepted
               </p>
-              <p className="text-white text-2xl font-bold tracking-widest">
-                ADWOA15
-              </p>
-              <p className="text-emerald-200 text-xs mt-1">
-                15% off your first order
-              </p>
-            </div>
-
-            {/* Right: Payment Methods */}
-            <div>
-              <p className="text-emerald-200 text-xs uppercase tracking-wider mb-3 text-center md:text-right">
-                Secure Payments
-              </p>
-              <div className="flex flex-wrap gap-2 justify-center md:justify-end">
-                {mobileMoneyProviders.map((provider) => (
-                  <span
-                    key={provider.name}
-                    className={`${provider.color} ${provider.text} text-xs font-bold px-3 py-1.5 rounded-lg whitespace-nowrap`}
+              <div className="flex flex-wrap gap-3 justify-center md:justify-end">
+                {paymentLogos.map((logo) => (
+                  <div
+                    key={logo.alt}
+                    className="w-[64px] h-[40px] bg-white rounded-xl flex items-center justify-center p-1.5 shadow-md hover:scale-105 transition-transform duration-200"
                   >
-                    {provider.name}
-                  </span>
+                    <Image
+                      src={logo.src}
+                      alt={logo.alt}
+                      width={56}
+                      height={32}
+                      className="object-contain w-full h-full"
+                    />
+                  </div>
                 ))}
               </div>
             </div>
+
           </div>
         </div>
       </section>

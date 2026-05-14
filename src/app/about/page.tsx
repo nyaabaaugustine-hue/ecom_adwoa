@@ -43,10 +43,10 @@ export default function AboutPage() {
             <p className="text-pink-500 text-xs font-semibold tracking-[0.2em] uppercase">Our Story</p>
           </div>
           <h1 className="text-5xl md:text-6xl font-serif font-bold text-gray-900 mb-6 leading-tight">
-            Celebrating <span className="text-pink-500">Ghana's Beauty</span>
+            Celebrating <span className="text-pink-500">Ghana&apos;s Beauty</span>
           </h1>
           <p className="text-gray-500 text-lg md:text-xl leading-relaxed max-w-2xl mx-auto">
-            Founded in 2019 in Accra, Adwoa's Beauty was born from a simple belief — every Ghanaian woman deserves access to premium, authentic beauty and fashion products that celebrate her identity.
+            Founded in 2019 in Accra, Adwoa&apos;s Beauty was born from a simple belief — every Ghanaian woman deserves access to premium, authentic beauty and fashion products that celebrate her identity.
           </p>
         </div>
       </section>
@@ -69,15 +69,17 @@ export default function AboutPage() {
       <section className="py-20 bg-white">
         <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-16 items-center">
           <div>
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 mb-6">A Story Born from <span className="text-pink-500">Passion</span></h2>
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 mb-6">
+              A Story Born from <span className="text-pink-500">Passion</span>
+            </h2>
             <div className="space-y-4 text-gray-600 leading-relaxed">
-              <p>It started in Adwoa Mensah's living room in Osu, Accra. A seamstress by training, she saw how difficult it was for women to find authentic Ghanaian fabric and beauty products — all in one trusted place.</p>
+              <p>It started in Adwoa Mensah&apos;s living room in Osu, Accra. A seamstress by training, she saw how difficult it was for women to find authentic Ghanaian fabric and beauty products — all in one trusted place.</p>
               <p>She began connecting local Kente weavers in the Volta Region with customers in Accra. Word spread. Orders came from Kumasi, Tamale, Cape Coast. Then from the diaspora — London, New York, Toronto.</p>
-              <p>Today, Adwoa's Beauty is Ghana's fastest-growing women's marketplace, partnering with over 200 artisans, farmers, and small businesses to bring you the finest African fashion and beauty products — delivered to your door.</p>
+              <p>Today, Adwoa&apos;s Beauty is Ghana&apos;s fastest-growing women&apos;s marketplace, partnering with over 200 artisans, farmers, and small businesses to bring you the finest African fashion and beauty products — delivered to your door.</p>
             </div>
             <div className="mt-8 flex items-center gap-3">
               <div className="flex -space-x-2">
-                {["🌸","🌺","💛","🌿"].map((e, i) => (
+                {["🌸", "🌺", "💛", "🌿"].map((e, i) => (
                   <div key={i} className="w-10 h-10 rounded-full bg-pink-100 border-2 border-white flex items-center justify-center text-sm">{e}</div>
                 ))}
               </div>
@@ -94,18 +96,12 @@ export default function AboutPage() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 to-transparent" />
             </div>
-            <div className="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl p-4 border border-pink-50">
-              <div className="flex items-center gap-3">
-                <div className="text-3xl">🇬🇭</div>
-                <div>
-                  <p className="font-bold text-gray-800 text-sm">100% Ghanaian</p>
-                  <p className="text-xs text-gray-500">Proudly Made in Ghana</p>
-                </div>
-              </div>
-            </div>
+            {/* Stars chip — top right only */}
             <div className="absolute -top-6 -right-6 bg-pink-500 text-white rounded-2xl shadow-xl p-4">
               <div className="flex items-center gap-1 mb-1">
-                {[1,2,3,4,5].map(i => <Star key={i} size={12} fill="white" />)}
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Star key={i} size={12} fill="white" />
+                ))}
               </div>
               <p className="font-bold text-sm">4.9 / 5 Stars</p>
               <p className="text-xs text-pink-100">Based on 5,000+ reviews</p>
@@ -140,7 +136,7 @@ export default function AboutPage() {
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-14">
             <h2 className="text-3xl md:text-4xl font-serif font-bold text-gray-900 mb-4">Meet the Team</h2>
-            <p className="text-gray-500 text-lg">The passionate people behind Adwoa's Beauty.</p>
+            <p className="text-gray-500 text-lg">The passionate people behind Adwoa&apos;s Beauty.</p>
           </div>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {team.map((member) => (
@@ -159,7 +155,7 @@ export default function AboutPage() {
       <section className="py-20 bg-gradient-to-r from-pink-500 to-rose-600 text-white text-center">
         <div className="max-w-2xl mx-auto px-4">
           <h2 className="text-3xl md:text-4xl font-serif font-bold mb-4">Ready to Discover Your Beauty?</h2>
-          <p className="text-pink-100 text-lg mb-8">Join 10,000+ women who trust Adwoa's Beauty for authentic Ghanaian fashion and beauty products.</p>
+          <p className="text-pink-100 text-lg mb-8">Join 10,000+ women who trust Adwoa&apos;s Beauty for authentic Ghanaian fashion and beauty products.</p>
           <a href="/" className="inline-flex items-center gap-2 bg-white text-pink-600 font-bold px-8 py-4 rounded-xl hover:bg-pink-50 transition-colors shadow-lg">
             Shop Now <ArrowRight size={18} />
           </a>

@@ -1,8 +1,8 @@
 /**
  * lib/db.ts
  * Neon PostgreSQL client — single shared instance for the whole app.
- * Uses the @neondatabase/serverless driver which works in Next.js
- * edge runtime, serverless functions, and Node.js.
+ * DATABASE_URL is validated lazily (at call time, not at module load time)
+ * so that Next.js can collect page data during build without a live DB.
  */
 
 import { neon, neonConfig } from "@neondatabase/serverless";
@@ -10,18 +10,49 @@ import { neon, neonConfig } from "@neondatabase/serverless";
 // Enable connection pooling (recommended for serverless)
 neonConfig.fetchConnectionCache = true;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL environment variable is not set");
+/**
+ * Returns a tagged-template sql client.
+ * Throws at *call time* (not import time) if DATABASE_URL is missing,
+ * which prevents build-time errors when the env var is only set in prod.
+ */
+function getDb() {
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error("DATABASE_URL environment variable is not set");
+  }
+  return neon(url);
 }
 
-export const sql = neon(process.env.DATABASE_URL);
+/**
+ * Lazily-initialised sql client.
+ * All API routes call this; it's never executed during `next build`.
+ */
+export const sql = new Proxy({} as ReturnType<typeof neon>, {
+  get(_target, prop) {
+    const client = getDb();
+    const value = (client as any)[prop];
+    if (typeof value === "function") return value.bind(client);
+    return value;
+  },
+  apply(_target, _thisArg, args) {
+    const client = getDb();
+    return (client as any)(...args);
+  },
+});
+
+// Also allow direct use as a tagged-template function via default export trick
+export function createSql() {
+  return getDb();
+}
 
 /**
  * Run this once to create all tables (call from a setup script or
  * from an API route at /api/setup — protect it with a secret).
  */
 export async function createTables() {
-  await sql`
+  const db = getDb();
+
+  await db`
     CREATE TABLE IF NOT EXISTS products (
       id          SERIAL PRIMARY KEY,
       name        TEXT NOT NULL,
@@ -41,7 +72,7 @@ export async function createTables() {
     )
   `;
 
-  await sql`
+  await db`
     CREATE TABLE IF NOT EXISTS customers (
       id         SERIAL PRIMARY KEY,
       name       TEXT NOT NULL,
@@ -53,12 +84,11 @@ export async function createTables() {
     )
   `;
 
-  // Add address column if upgrading an existing DB (safe to run multiple times)
-  await sql`
+  await db`
     ALTER TABLE customers ADD COLUMN IF NOT EXISTS address TEXT
   `;
 
-  await sql`
+  await db`
     CREATE TABLE IF NOT EXISTS orders (
       id              SERIAL PRIMARY KEY,
       reference       TEXT UNIQUE NOT NULL,
@@ -77,7 +107,7 @@ export async function createTables() {
     )
   `;
 
-  await sql`
+  await db`
     CREATE TABLE IF NOT EXISTS order_items (
       id         SERIAL PRIMARY KEY,
       order_id   INTEGER REFERENCES orders(id) ON DELETE CASCADE,

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import Script from "next/script";
 import { ThemeSwitcher } from "../components/ThemeSwitcher";
+import { PWAProvider } from "../components/PWAProvider";
 import "./globals.css";
 
 const inter = Inter({
@@ -41,6 +42,12 @@ export const metadata: Metadata = {
   authors: [{ name: "Adwoa's Beauty" }],
   creator: "Adwoa's Beauty",
   metadataBase: new URL("https://adwoasbeauty.com"),
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Adwoa's Beauty",
+  },
   openGraph: {
     title: "Adwoa's Beauty — Ghana's Premier Women's Marketplace",
     description:
@@ -68,11 +75,20 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
+      <head>
+        {/* PWA / Apple */}
+        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="mobile-web-app-capable" content="yes" />
+      </head>
       <body className="font-sans antialiased">
         {children}
-        {/* Global floating theme switcher — rendered outside page trees */}
+        {/* PWA install prompt + service-worker registration */}
+        <PWAProvider />
+        {/* Global floating theme switcher */}
         <ThemeSwitcher />
-        {/* Paystack Inline JS — loaded lazily, available on window.PaystackPop */}
+        {/* Paystack Inline JS */}
         <Script
           src="https://js.paystack.co/v1/inline.js"
           strategy="lazyOnload"

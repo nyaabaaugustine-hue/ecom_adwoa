@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect } from "react";
 import { X, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 import { SafeImage } from "./SafeImage";
 
@@ -16,18 +19,37 @@ export function Cart({ isOpen, onClose, items = [], onRemove, onUpdateQuantity, 
     0
   );
 
+  // Lock body scroll when cart is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [isOpen]);
+
   if (!isOpen) return null;
+
+  const handleCheckout = () => {
+    // Close cart first, then open checkout on next tick so
+    // React flushes the cart unmount before mounting the modal.
+    onClose();
+    setTimeout(() => {
+      onCheckout?.();
+    }, 50);
+  };
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop — z-40 so CheckoutModal (z-50) always renders above it */}
       <div
-        className="fixed inset-0 bg-black/50 z-50"
+        className="fixed inset-0 bg-black/50 z-40"
         onClick={onClose}
       />
 
-      {/* Cart Panel */}
-      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white z-50 shadow-2xl flex flex-col">
+      {/* Cart Panel — z-40 (same layer as its backdrop) */}
+      <div className="fixed right-0 top-0 h-full w-full max-w-md bg-white z-40 shadow-2xl flex flex-col">
         {/* Header */}
         <div className="bg-white border-b border-gray-100 p-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -136,17 +158,14 @@ export function Cart({ isOpen, onClose, items = [], onRemove, onUpdateQuantity, 
                 GHc{total.toFixed(2)}
               </span>
             </div>
-            <button 
-              onClick={() => {
-                onClose();
-                onCheckout?.();
-              }}
-              className="w-full bg-pink-500 hover:bg-pink-600 text-white font-medium py-4 text-sm tracking-wide rounded-md mb-2"
+            <button
+              onClick={handleCheckout}
+              className="w-full bg-pink-500 hover:bg-pink-600 active:bg-pink-700 text-white font-bold py-4 text-sm tracking-widest rounded-md mb-2 transition-colors"
             >
               CHECKOUT
             </button>
             <p className="text-center text-gray-400 text-xs">
-              Secure checkout with Mobile Money & Cards
+              Secure checkout with Mobile Money &amp; Cards
             </p>
           </div>
         )}

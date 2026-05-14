@@ -5,8 +5,8 @@ import { X, ChevronLeft, ChevronRight } from "lucide-react";
 const announcements = [
   "🎉 Free Shipping on orders over GHc200 across all 16 regions!",
   "💫 Use Code ADWOA15 for 15% off your first order",
-  "🇬🇭 Proudly supporting Ghanaian artisans & local businesses",
   "⚡ Same-day delivery available in Accra & Kumasi",
+  "🛍️ New arrivals every week — Ankara, Kente & more!",
 ];
 
 export function AnnouncementBar() {
