@@ -29,11 +29,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
       if (existing) {
         return prev.map(i =>
           i.id === item.id
-            ? { ...i, quantity: i.quantity + item.quantity }
+            ? { ...i, quantity: i.quantity + (item.quantity || 1) }
             : i
         );
       }
-      return [...prev, item];
+      return [...prev, { ...item, quantity: item.quantity || 1 }];
     });
   };
 

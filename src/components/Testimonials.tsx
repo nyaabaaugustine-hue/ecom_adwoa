@@ -28,10 +28,24 @@ const testimonials = [
   },
 ];
 
+const BG_IMAGE =
+  "https://res.cloudinary.com/dwsl2ktt2/image/upload/v1778669947/lk_oyxxa6.avif";
+
 export function Testimonials() {
   return (
-    <section className="py-16 bg-pink-50">
-      <div className="max-w-7xl mx-auto px-4">
+    <section className="py-16 relative overflow-hidden">
+      {/* Background image at 60% opacity */}
+      <div
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: `url('${BG_IMAGE}')`,
+          opacity: 0.6,
+        }}
+      />
+      {/* Soft pink overlay so text stays readable */}
+      <div className="absolute inset-0 bg-pink-50/60" />
+
+      <div className="relative max-w-7xl mx-auto px-4">
         <div className="text-center mb-12">
           <p className="text-pink-500 text-sm font-medium tracking-widest uppercase mb-2">
             Testimonials
@@ -45,7 +59,7 @@ export function Testimonials() {
           {testimonials.map((testimonial) => (
             <div
               key={testimonial.id}
-              className="bg-white p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow"
+              className="bg-white/85 backdrop-blur-sm p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow"
             >
               <Quote size={24} className="text-pink-200 mb-4" />
               <div className="flex mb-4">

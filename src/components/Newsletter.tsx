@@ -2,6 +2,9 @@
 import { useState } from "react";
 import { ArrowRight, CheckCircle } from "lucide-react";
 
+const BG_IMAGE =
+  "https://res.cloudinary.com/dwsl2ktt2/image/upload/v1778669947/lk_oyxxa6.avif";
+
 export function Newsletter() {
   const [email, setEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
@@ -17,8 +20,19 @@ export function Newsletter() {
   return (
     <section className="py-16 bg-white">
       <div className="max-w-7xl mx-auto px-4">
-        <div className="bg-gradient-to-br from-pink-500 via-rose-400 to-pink-600 rounded-3xl p-8 md:p-12 text-center relative overflow-hidden">
-          {/* Background Pattern */}
+        <div className="relative rounded-3xl overflow-hidden text-center">
+          {/* Background image at 40% opacity */}
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{
+              backgroundImage: `url('${BG_IMAGE}')`,
+              opacity: 0.4,
+            }}
+          />
+          {/* Pink gradient overlay so text stays readable */}
+          <div className="absolute inset-0 bg-gradient-to-br from-pink-500/80 via-rose-400/80 to-pink-600/80" />
+
+          {/* Dot pattern */}
           <div
             className="absolute inset-0 opacity-10"
             style={{
@@ -26,7 +40,9 @@ export function Newsletter() {
               backgroundSize: "40px 40px",
             }}
           />
-          <div className="relative">
+
+          {/* Content */}
+          <div className="relative p-8 md:p-12">
             <span className="text-4xl mb-4 block">💌</span>
             <h2 className="text-2xl md:text-3xl font-serif font-medium text-white mb-3">
               Join the Adwoa&apos;s Family
