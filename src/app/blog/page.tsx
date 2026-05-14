@@ -1,6 +1,8 @@
+"use client";
+
 import { AnnouncementBar } from "../../components/AnnouncementBar";
 import { Footer } from "../../components/Footer";
-import { Header } from "../../components/Header";
+import { StaticHeader } from "../../components/StaticHeader";
 import { ArrowRight, Clock, User } from "lucide-react";
 
 const posts = [
@@ -74,8 +76,6 @@ const posts = [
 
 const categories = ["All", "Fashion", "Skincare", "Cosmetics", "Lifestyle"];
 
-export const metadata = { title: "Blog — Adwoa's Beauty" };
-
 export default function BlogPage() {
   const featured = posts.find(p => p.featured)!;
   const rest = posts.filter(p => !p.featured);
@@ -83,7 +83,7 @@ export default function BlogPage() {
   return (
     <div className="min-h-screen bg-white">
       <AnnouncementBar />
-      <Header cartCount={0} onCartClick={() => {}} onDashboardClick={() => {}} isAuthenticated={false} user={null} onLogout={() => {}} />
+      <StaticHeader />
 
       {/* Hero */}
       <section className="bg-gradient-to-br from-rose-50 via-pink-50 to-fuchsia-50 py-20 text-center overflow-hidden relative">
@@ -93,8 +93,8 @@ export default function BlogPage() {
             <span className="h-2 w-2 rounded-full bg-pink-500 animate-pulse flex" />
             <p className="text-pink-500 text-xs font-semibold tracking-[0.2em] uppercase">Stories & Style</p>
           </div>
-          <h1 className="text-5xl font-serif font-bold text-gray-900 mb-4">Adwoa's <span className="text-pink-500">Blog</span></h1>
-          <p className="text-gray-500 text-lg max-w-xl mx-auto">Fashion tips, beauty secrets, and stories celebrating Ghanaian women's style and culture.</p>
+          <h1 className="text-5xl font-serif font-bold text-gray-900 mb-4">Adwoa&apos;s <span className="text-pink-500">Blog</span></h1>
+          <p className="text-gray-500 text-lg max-w-xl mx-auto">Fashion tips, beauty secrets, and stories celebrating Ghanaian women&apos;s style and culture.</p>
         </div>
       </section>
 
