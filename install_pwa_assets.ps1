@@ -1,0 +1,1 @@
+cat /mnt/user-data/outputs/pwa-fix/install_pwa_assets.ps1
