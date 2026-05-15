@@ -1,14 +1,12 @@
 // ============================================================
-// Adwoa's Beauty PWA Service Worker  (v2 — fixed & upgraded)
+// Adwoa's Beauty PWA Service Worker  (v3 — clean, no Workbox)
 // Strategy: Cache-first for static assets, Network-first for pages
 // Offline fallback: cached homepage or /offline.html
 // ============================================================
 
-importScripts('https://storage.googleapis.com/workbox-cdn/releases/5.1.2/workbox-sw.js');
-
-const CACHE_NAME   = 'adwoas-beauty-v2';
-const OFFLINE_URL  = '/offline.html';   // fixed: was ToDo-replace-this-name.html
-const STATIC_CACHE = 'adwoas-static-v2';
+const CACHE_NAME   = 'adwoas-beauty-v3';
+const OFFLINE_URL  = '/offline.html';
+const STATIC_CACHE = 'adwoas-static-v3';
 
 // Core pages & assets to pre-cache on install
 const PRECACHE_ASSETS = [
@@ -19,58 +17,72 @@ const PRECACHE_ASSETS = [
   '/skincare',
   '/cosmetics',
   '/manifest.json',
+  '/icon-192x192.png',
+  '/icon-512x512.png',
 ];
 
-// ── Skip-waiting message from clients ─────────────────────────
+// ── Skip-waiting message from clients ─────────────────────────────────────
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
 });
 
-// ── Install: pre-cache core assets ────────────────────────────
+// ── Install: pre-cache core assets ────────────────────────────────────────
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(PRECACHE_ASSETS);
+      // addAll can fail if any URL 404s; use individual puts so one missing
+      // file doesn't abort the whole install
+      return Promise.allSettled(
+        PRECACHE_ASSETS.map((url) =>
+          fetch(url)
+            .then((resp) => {
+              if (resp.ok) cache.put(url, resp);
+            })
+            .catch(() => { /* ignore individual failures */ })
+        )
+      );
     })
   );
   self.skipWaiting();
 });
 
-// ── Activate: purge old caches ────────────────────────────────
+// ── Activate: enable nav-preload + purge old caches ───────────────────────
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
+    (async () => {
+      // Enable Navigation Preload if supported (native, no Workbox needed)
+      if (self.registration.navigationPreload) {
+        await self.registration.navigationPreload.enable();
+      }
+      // Purge old caches
+      const keys = await caches.keys();
+      await Promise.all(
         keys
           .filter((key) => key !== CACHE_NAME && key !== STATIC_CACHE)
           .map((key) => caches.delete(key))
-      )
-    )
+      );
+    })()
   );
   self.clients.claim();
 });
 
-// ── Fetch ─────────────────────────────────────────────────────
-if (workbox.navigationPreload.isSupported()) {
-  workbox.navigationPreload.enable();
-}
-
+// ── Fetch ─────────────────────────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
 
-  // Skip cross-origin, chrome-extension, hot-reload
+  // Skip cross-origin, chrome-extension, HMR
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/_next/webpack-hmr')) return;
 
-  // API calls — network only, no caching
+  // API calls — network only, never cache
   if (url.pathname.startsWith('/api/')) return;
 
-  // Static assets (_next/static) — cache-first
+  // Static _next/static assets — cache-first (content-hashed, safe forever)
   if (url.pathname.startsWith('/_next/static/')) {
     event.respondWith(
       caches.match(request).then((cached) => {
@@ -87,19 +99,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Navigation requests — network-first with navigation preload, offline fallback
+  // Navigation requests — network-first with nav-preload, offline fallback
   if (request.mode === 'navigate') {
     event.respondWith(
       (async () => {
         try {
-          // Use preload response if available (faster)
           const preloadResp = await event.preloadResponse;
           if (preloadResp) {
             const clone = preloadResp.clone();
             caches.open(CACHE_NAME).then((c) => c.put(request, clone));
             return preloadResp;
           }
-
           const networkResp = await fetch(request);
           if (networkResp.ok) {
             const clone = networkResp.clone();
@@ -107,18 +117,18 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResp;
         } catch {
-          const cache    = await caches.open(CACHE_NAME);
-          const cached   = await cache.match(request);
+          const cache   = await caches.open(CACHE_NAME);
+          const cached  = await cache.match(request);
           if (cached) return cached;
-          const offline  = await cache.match(OFFLINE_URL);
-          return offline || new Response('Offline', { status: 503 });
+          const offline = await cache.match(OFFLINE_URL);
+          return offline || new Response('You are offline', { status: 503 });
         }
       })()
     );
     return;
   }
 
-  // Everything else — network-first
+  // Everything else — network-first with cache fallback
   event.respondWith(
     fetch(request)
       .then((response) => {
