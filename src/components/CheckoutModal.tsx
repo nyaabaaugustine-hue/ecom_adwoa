@@ -66,8 +66,27 @@ const PAYMENT_METHODS = [
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        // Fallback for PWA/older browsers
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch { /* ignore */ }
+  };
   return (
-    <button onClick={() => { navigator.clipboard.writeText(text).catch(() => {}); setCopied(true); setTimeout(() => setCopied(false), 1500); }} title="Copy" className="ml-2 text-gray-400 hover:text-pink-500 transition-colors">
+    <button onClick={handleCopy} title="Copy" className="ml-2 text-gray-400 hover:text-pink-500 transition-colors">
       {copied ? <Check size={13} className="text-green-500" /> : <Copy size={13} />}
     </button>
   );
@@ -130,6 +149,17 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
     return ["mobile_money"];
   };
 
+  const loadPaystackScript = async (): Promise<void> => {
+    if ((window as any).PaystackPop) return;
+    return new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "https://js.paystack.co/v1/inline.js";
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error("Could not load payment script. Check your connection."));
+      document.head.appendChild(script);
+    });
+  };
+
   const handlePay = async () => {
     setLoading(true);
     setError("");
@@ -143,8 +173,15 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
       const { reference: ref } = await initRes.json();
       setReference(ref);
 
+      // Ensure Paystack script is loaded (handles PWA standalone mode)
+      try {
+        await loadPaystackScript();
+      } catch {
+        throw new Error("Payment script failed to load. Please check your connection and try again.");
+      }
+
       const PaystackPop = (window as any).PaystackPop;
-      if (!PaystackPop) throw new Error("Paystack script not loaded. Please try again.");
+      if (!PaystackPop) throw new Error("Payment system not ready. Please refresh and try again.");
       const publicKey = process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY ?? "";
       if (!publicKey || publicKey.includes("CHANGE_ME")) throw new Error("Paystack public key not configured.");
       setLoading(false);

@@ -1,3 +1,5 @@
+"use client";
+
 import { User } from "../utils/auth";
 import { SafeImage } from "./SafeImage";
 import { 

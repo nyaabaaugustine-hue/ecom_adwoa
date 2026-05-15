@@ -1,3 +1,5 @@
+"use client";
+
 import { useEffect, useRef, useState } from "react";
 import { Star, Heart, ShoppingBag } from "lucide-react";
 import { products } from "../utils/products";

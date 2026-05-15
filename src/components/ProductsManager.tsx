@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Search, Plus, Edit, Trash2, Eye, Package, AlertCircle } from "lucide-react";
 import { SafeImage } from "./SafeImage";

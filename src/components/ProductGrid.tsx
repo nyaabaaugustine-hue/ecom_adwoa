@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Heart, Star, Eye, ArrowRight } from "lucide-react";
 import { products } from "../utils/products";

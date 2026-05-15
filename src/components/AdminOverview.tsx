@@ -1,3 +1,5 @@
+"use client";
+
 import { TrendingUp, TrendingDown, DollarSign, ShoppingBag, Users, Package, AlertCircle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar } from "recharts";
 import { salesData, categorySales, recentOrders } from "../utils/dashboardData";

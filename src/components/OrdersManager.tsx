@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Search, Eye, Download, X, CheckCircle, Clock, Truck, XCircle, Package } from "lucide-react";
 import { recentOrders, Order } from "../utils/dashboardData";

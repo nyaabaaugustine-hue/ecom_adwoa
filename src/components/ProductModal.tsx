@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { SafeImage } from "./SafeImage";
 import { X, Star, Heart, Minus, Plus, ChevronLeft, ChevronRight } from "lucide-react";

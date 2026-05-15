@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { Plus, Search, Edit, Trash2, Eye, Filter, Download, Upload, Package } from "lucide-react";
 import { products } from "../utils/products";
