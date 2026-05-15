@@ -185,13 +185,12 @@ export function Footer() {
                 <div className="flex-shrink-0">
                   <div className="relative">
                     <div
-                      className="w-20 h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center shadow-xl"
+                      className="w-20 h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center shadow-xl overflow-hidden bg-white"
                       style={{
-                        background: "linear-gradient(135deg, #ec4899 0%, #f59e0b 100%)",
                         boxShadow: "0 0 32px rgba(236,72,153,0.4)",
                       }}
                     >
-                      <span className="text-white font-bold text-4xl md:text-5xl font-serif select-none">A</span>
+                      <Image src="https://res.cloudinary.com/dwsl2ktt2/image/upload/v1778724509/logo_fxelgm.png" alt="Adwoa's Beauty" width={96} height={96} className="object-contain w-full h-full" />
                     </div>
                     {/* Sparkle badge */}
                     <div

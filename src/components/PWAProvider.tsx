@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { X, Download, Smartphone, Star, Zap, WifiOff, Bell } from "lucide-react";
 import Image from "next/image";
 
@@ -41,6 +41,7 @@ export function PWAProvider() {
   const [installed, setInstalled] = useState(false);
   const [installing, setInstalling] = useState(false);
   const [isIos, setIsIos] = useState(false);
+  const deferredPromptRef = useRef<BeforeInstallPromptEvent | null>(null);
 
   // ── Register service worker ──────────────────────────────────────────────
   useEffect(() => {
@@ -91,15 +92,17 @@ export function PWAProvider() {
     // Capture beforeinstallprompt
     const handler = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      const prompt = e as BeforeInstallPromptEvent;
+      setDeferredPrompt(prompt);
+      deferredPromptRef.current = prompt;
       // Store globally for footer button access
-      (window as any).__deferredPrompt = e as BeforeInstallPromptEvent;
+      (window as any).__deferredPrompt = prompt;
     };
     window.addEventListener("beforeinstallprompt", handler);
 
     // Listen for install request from footer button
     const installRequestHandler = () => {
-      if (deferredPrompt) {
+      if (deferredPromptRef.current) {
         setShowModal(true);
       } else {
         // No native prompt available, show manual instructions
@@ -154,6 +157,7 @@ export function PWAProvider() {
     } finally {
       setInstalling(false);
       setDeferredPrompt(null);
+      deferredPromptRef.current = null;
       (window as any).__deferredPrompt = null;
       setShowModal(false);
     }
@@ -213,13 +217,12 @@ export function PWAProvider() {
             <div className="flex justify-center mb-5">
               <div className="relative">
                 <div
-                  className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-xl"
+                  className="w-20 h-20 rounded-2xl flex items-center justify-center shadow-xl overflow-hidden bg-white"
                   style={{
-                    background: "linear-gradient(135deg, #ec4899 0%, #f59e0b 100%)",
                     boxShadow: "0 0 32px rgba(236,72,153,0.5)",
                   }}
                 >
-                  <span className="text-white font-bold text-4xl font-serif select-none">A</span>
+                  <Image src={LOGO_URL} alt="Adwoa's Beauty" width={80} height={80} className="object-contain w-full h-full" />
                 </div>
                 {/* Sparkle badge */}
                 <div
