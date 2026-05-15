@@ -1,3 +1,5 @@
+"use client";
+
 import Image from "next/image";
 import { Instagram, Facebook, Twitter, Youtube, MapPin, Phone, Mail, Shield, Zap, Download, Smartphone, Star } from "lucide-react";
 
