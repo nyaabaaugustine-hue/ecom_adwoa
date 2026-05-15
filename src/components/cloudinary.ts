@@ -6,19 +6,28 @@ const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dwsl2ktt2';
 
 /**
  * Generates a Cloudinary URL with an automatic fallback.
- * Format: https://res.cloudinary.com/[cloud-name]/image/upload/d_default.jpg/v1/[public-id]
  * 
- * @param publicId - The public ID of the image or a full Cloudinary URL
+ * For external URLs (e.g., Unsplash): uses Cloudinary's fetch API
+ * For Cloudinary public IDs: uses the upload API with fallback
+ * 
+ * @param src - The image source (full URL or Cloudinary public ID)
  * @returns A formatted Cloudinary URL string
  */
-export function getSafeImageUrl(publicId: string): string {
-  // Handle cases where a full URL might be passed by extracting the ID after /upload/(v\d+/)?
-  const idOnly = publicId.includes('image/upload/') 
-    ? publicId.split('image/upload/').pop()?.replace(/v\d+\//, '') 
-    : publicId;
+export function getSafeImageUrl(src: string): string {
+  // Handle external URLs using Cloudinary's fetch API
+  if (src.startsWith('http://') || src.startsWith('https://')) {
+    // Check if it's already a Cloudinary URL
+    if (src.includes('res.cloudinary.com')) {
+      return src;
+    }
+    // Use fetch API for external images
+    return `https://res.cloudinary.com/${CLOUD_NAME}/image/fetch/${src}`;
+  }
 
-  // We use 'd_default.jpg' as the fallback parameter. 
-  // Ensure 'default.jpg' exists in your Cloudinary media library root.
-  // v1 is used as a placeholder version for consistency.
+  // Handle Cloudinary public IDs
+  const idOnly = src.includes('image/upload/') 
+    ? src.split('image/upload/').pop()?.replace(/v\d+\//, '') 
+    : src;
+
   return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/d_default.jpg/v1/${idOnly}`;
 }
