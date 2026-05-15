@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { Instagram, Facebook, Twitter, Youtube, MapPin, Phone, Mail, Shield, Zap } from "lucide-react";
+import { Instagram, Facebook, Twitter, Youtube, MapPin, Phone, Mail, Shield, Zap, Download, Smartphone, Star } from "lucide-react";
 
 const socialLinks = [
   { icon: Facebook, label: "Facebook", href: "#" },
@@ -49,6 +49,30 @@ const paymentMethods = [
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+
+  const handleInstall = () => {
+    // Try native PWA install first
+    const installEvent = (window as any).__deferredPrompt;
+    if (installEvent) {
+      installEvent.prompt();
+      installEvent.userChoice.then((result: any) => {
+        if (result.outcome === 'accepted') {
+          console.log('PWA installed');
+        }
+        (window as any).__deferredPrompt = null;
+      });
+      return;
+    }
+
+    // Fallback: show iOS instructions or trigger PWA provider
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    if (isIOS) {
+      alert('Tap the Share button, then choose "Add to Home Screen"');
+    } else {
+      // Trigger the PWA modal from PWAProvider
+      window.dispatchEvent(new CustomEvent('pwa-install-request'));
+    }
+  };
 
   return (
     <footer className="bg-gray-950 text-white relative overflow-hidden">
@@ -135,6 +159,99 @@ export function Footer() {
               </ul>
             </div>
           ))}
+        </div>
+
+        {/* ── Install App Section ── */}
+        <div className="mb-10">
+          <div
+            className="relative mx-auto rounded-3xl overflow-hidden"
+            style={{
+              maxWidth: 700,
+              background: "linear-gradient(135deg, #1a0a2e 0%, #0d1a3a 50%, #1a0a2e 100%)",
+              boxShadow: "0 0 0 1px rgba(236,72,153,0.2), 0 20px 60px rgba(0,0,0,0.5)",
+            }}
+          >
+            {/* Decorative glow */}
+            <div
+              className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-32 rounded-full blur-3xl opacity-30 pointer-events-none"
+              style={{ background: "radial-gradient(circle, #ec4899 0%, #8b5cf6 100%)" }}
+            />
+
+            <div className="h-0.5 bg-gradient-to-r from-transparent via-pink-500 to-transparent" />
+
+            <div className="relative px-6 py-8 md:px-10 md:py-10">
+              <div className="flex flex-col md:flex-row items-center gap-6">
+                {/* App Icon */}
+                <div className="flex-shrink-0">
+                  <div className="relative">
+                    <div
+                      className="w-20 h-20 md:w-24 md:h-24 rounded-2xl flex items-center justify-center shadow-xl"
+                      style={{
+                        background: "linear-gradient(135deg, #ec4899 0%, #f59e0b 100%)",
+                        boxShadow: "0 0 32px rgba(236,72,153,0.4)",
+                      }}
+                    >
+                      <span className="text-white font-bold text-4xl md:text-5xl font-serif select-none">A</span>
+                    </div>
+                    {/* Sparkle badge */}
+                    <div
+                      className="absolute -top-1 -right-1 w-6 h-6 rounded-full flex items-center justify-center"
+                      style={{ background: "linear-gradient(135deg, #f59e0b, #ef4444)" }}
+                    >
+                      <Star size={11} fill="white" stroke="none" />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="flex-1 text-center md:text-left">
+                  <h3 className="text-white text-xl md:text-2xl font-bold mb-1">
+                    Install Our App
+                  </h3>
+                  <p className="text-pink-400 text-xs font-medium tracking-widest uppercase mb-3">
+                    Ghana&apos;s Premier Women&apos;s Marketplace
+                  </p>
+                  <p className="text-gray-400 text-sm leading-relaxed mb-4">
+                    Get faster access, offline browsing, and instant order updates. Add Adwoa&apos;s Beauty to your home screen in seconds.
+                  </p>
+
+                  {/* Feature pills */}
+                  <div className="flex items-center justify-center md:justify-start gap-2 flex-wrap">
+                    {[
+                      { icon: <Zap size={12} />, label: "Faster" },
+                      { icon: <Smartphone size={12} />, label: "Offline" },
+                      { icon: <Download size={12} />, label: "Free" },
+                    ].map((f) => (
+                      <div
+                        key={f.label}
+                        className="flex items-center gap-1.5 rounded-full px-3 py-1.5"
+                        style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.07)" }}
+                      >
+                        <span className="text-pink-400">{f.icon}</span>
+                        <span className="text-white text-xs font-semibold">{f.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* CTA Button */}
+                <button
+                  id="footer-install-btn"
+                  onClick={handleInstall}
+                  className="flex-shrink-0 py-3 px-6 rounded-2xl font-bold text-sm text-white flex items-center gap-2 transition-all active:scale-95 hover:opacity-90"
+                  style={{
+                    background: "linear-gradient(135deg, #ec4899 0%, #f59e0b 100%)",
+                    boxShadow: "0 4px 24px rgba(236,72,153,0.35)",
+                  }}
+                >
+                  <Download size={16} />
+                  Install App
+                </button>
+              </div>
+            </div>
+
+            <div className="h-0.5 bg-gradient-to-r from-transparent via-amber-400 to-transparent" />
+          </div>
         </div>
 
         {/* ── Payment Methods Section ── */}

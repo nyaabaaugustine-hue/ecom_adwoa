@@ -2,6 +2,9 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { X, Download, Smartphone, Star, Zap, WifiOff, Bell } from "lucide-react";
+import Image from "next/image";
+
+const LOGO_URL = "https://res.cloudinary.com/dwsl2ktt2/image/upload/v1778724509/logo_fxelgm.png";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -71,7 +74,7 @@ export function PWAProvider() {
     setIsIos(ios);
   }, []);
 
-  // ── PWA install prompt + every-2nd-reload trigger ────────────────────────
+  // ── PWA install prompt + timed trigger ───────────────────────────────────
   useEffect(() => {
     // Detect already-installed (standalone mode)
     if (
@@ -82,29 +85,41 @@ export function PWAProvider() {
       return;
     }
 
-    // Increment reload count on every page load
-    const count = incrementReloadCount();
-    // Show on every even reload (2nd, 4th, 6th…) but only if not permanently dismissed
     const permanentlyDismissed = localStorage.getItem("pwa-never-show") === "1";
-    const shouldShow = !permanentlyDismissed && count % 2 === 0;
+    if (permanentlyDismissed) return;
 
     // Capture beforeinstallprompt
     const handler = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      if (shouldShow) {
-        setTimeout(() => setShowModal(true), 1200);
-      }
+      // Store globally for footer button access
+      (window as any).__deferredPrompt = e as BeforeInstallPromptEvent;
     };
     window.addEventListener("beforeinstallprompt", handler);
 
-    // iOS Safari fallback — no beforeinstallprompt
-    const ios =
-      /iphone|ipad|ipod/i.test(navigator.userAgent) &&
-      !(window.navigator as any).standalone;
-    if (ios && shouldShow) {
-      setTimeout(() => setShowModal(true), 1200);
-    }
+    // Listen for install request from footer button
+    const installRequestHandler = () => {
+      if (deferredPrompt) {
+        setShowModal(true);
+      } else {
+        // No native prompt available, show manual instructions
+        const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+        if (isIOS) {
+          alert('Tap the Share button, then choose "Add to Home Screen"');
+        }
+      }
+    };
+    window.addEventListener("pwa-install-request", installRequestHandler);
+
+    // Show modal 3 seconds after load
+    const initialTimer = setTimeout(() => {
+      setShowModal(true);
+    }, 3000);
+
+    // Then show every 1 minute
+    const intervalTimer = setInterval(() => {
+      setShowModal(true);
+    }, 60000);
 
     // Detect successful install
     window.addEventListener("appinstalled", () => {
@@ -112,9 +127,16 @@ export function PWAProvider() {
       setShowModal(false);
       setDeferredPrompt(null);
       resetReloadCount();
+      clearTimeout(initialTimer);
+      clearInterval(intervalTimer);
     });
 
-    return () => window.removeEventListener("beforeinstallprompt", handler);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handler);
+      window.removeEventListener("pwa-install-request", installRequestHandler);
+      clearTimeout(initialTimer);
+      clearInterval(intervalTimer);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -132,13 +154,13 @@ export function PWAProvider() {
     } finally {
       setInstalling(false);
       setDeferredPrompt(null);
+      (window as any).__deferredPrompt = null;
       setShowModal(false);
     }
   }, [deferredPrompt]);
 
   const handleDismiss = () => {
     setShowModal(false);
-    // Don't permanently dismiss — show again after 2 more reloads
   };
 
   const handleNeverShow = () => {

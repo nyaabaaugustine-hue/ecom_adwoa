@@ -111,7 +111,7 @@ export default function RootLayout({
         {/* Favicon — using Cloudinary logo directly */}
         <link rel="icon" href={LOGO_URL} type="image/png" />
         <link rel="shortcut icon" href={LOGO_URL} type="image/png" />
-        <link rel="apple-touch-icon" href={LOGO_URL} />
+        <link rel="apple-touch-icon" href="https://res.cloudinary.com/dwsl2ktt2/image/upload/w_180,h_180,c_fill/v1778724509/logo_fxelgm.png" />
         {/* PWA / Apple */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
