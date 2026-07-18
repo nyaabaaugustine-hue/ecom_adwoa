@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Search, Eye, Download, X, CheckCircle, Clock, Truck, XCircle, Package, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { fetchOrders, updateOrderStatusApi, type Order } from "../lib/store-api";
 import { formatDate, formatDateShort, formatTime } from "../utils/date";
 
@@ -60,8 +61,17 @@ export function OrdersManager({ hasPermission }: OrdersManagerProps) {
       const updated = await updateOrderStatusApi(order.id, newStatus);
       setOrders((prev) => prev.map((o) => (o.id === order.id ? updated : o)));
       setSelectedOrder(updated);
+
+      const justMarkedPaid = order.paymentStatus !== "paid" && updated.paymentStatus === "paid";
+      if (justMarkedPaid) {
+        toast.success(`Order ${updated.reference} marked as PAID (cash collected on delivery).`);
+      } else {
+        toast.success(`Order ${updated.reference} updated to "${newStatus}".`);
+      }
     } catch (err: any) {
-      setError(err.message || "Failed to update order status.");
+      const msg = err.message || "Failed to update order status.";
+      setError(msg);
+      toast.error(msg);
     } finally {
       setUpdatingId(null);
     }

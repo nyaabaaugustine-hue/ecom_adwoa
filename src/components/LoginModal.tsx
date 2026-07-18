@@ -1,16 +1,22 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { X, Eye, EyeOff, Lock, Mail, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 
 interface LoginModalProps {
   open: boolean;
   onClose: () => void;
   onLogin: (user: { email: string; name: string; role: string }, token: string) => void;
+  prefillEmail?: string;
 }
 
-export function LoginModal({ open, onClose, onLogin }: LoginModalProps) {
+export function LoginModal({ open, onClose, onLogin, prefillEmail }: LoginModalProps) {
   const [email, setEmail] = useState("");
+
+  useEffect(() => {
+    if (open && prefillEmail) setEmail(prefillEmail);
+  }, [open, prefillEmail]);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
@@ -33,7 +39,9 @@ export function LoginModal({ open, onClose, onLogin }: LoginModalProps) {
       const data = await res.json();
 
       if (!res.ok) {
-        setError(data.error || "Invalid email or password. Please try again.");
+        const msg = data.error || "Invalid email or password. Please try again.";
+        setError(msg);
+        toast.error(msg);
         setIsLoading(false);
         return;
       }

@@ -7,6 +7,7 @@ import {
   X, Loader, CheckCircle, AlertCircle, ChevronLeft, Copy, Check, Shield, Truck,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { toast } from "sonner";
 
 interface CheckoutModalProps {
   isOpen: boolean;
@@ -209,6 +210,7 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
       setReference(ref);
       setNeedsAccount(!!needsAcct);
       setStep("success");
+      toast.success(`Order placed! Ref: ${ref}`);
       clearCart();
       setTimeout(() => {
         if (needsAcct) {
@@ -219,7 +221,9 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
       }, 1800);
     } catch (err: any) {
       setLoading(false);
-      setError(err.message || "Could not place order.");
+      const msg = err.message || "Could not place order.";
+      setError(msg);
+      toast.error(msg);
       setStep("error");
     }
   };
@@ -263,6 +267,7 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
         callback: async (tx: { reference: string }) => {
           await fetch(`/api/payment/verify?reference=${tx.reference}&popup=true`).catch(() => {});
           setStep("success"); setReference(tx.reference); clearCart();
+          toast.success(`Payment successful! Ref: ${tx.reference}`);
           setTimeout(() => {
             if (needsAcct) {
               setStep("account");
@@ -271,11 +276,13 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
             }
           }, 1800);
         },
-        onClose: () => { setLoading(false); setError("Payment cancelled. Try again whenever you're ready."); },
+        onClose: () => { setLoading(false); setError("Payment cancelled. Try again whenever you're ready."); toast.message("Payment cancelled."); },
       }).openIframe();
     } catch (err: any) {
       setLoading(false);
-      setError(err.message || "Payment failed.");
+      const msg = err.message || "Payment failed.";
+      setError(msg);
+      toast.error(msg);
       setStep("error");
     }
   };

@@ -36,6 +36,7 @@ function SuccessContent() {
   }, [ref]);
 
   const isCod = orderData?.paymentMethod === "cod";
+  const isPaid = orderData?.paymentStatus === "paid";
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
@@ -55,7 +56,20 @@ function SuccessContent() {
       </div>
 
       {/* Order Reference */}
-      <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-8 mb-8">
+      <div className="relative bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-8 mb-8 overflow-hidden">
+        {/* Payment status stamp — rubber-stamp style, rotated corner badge */}
+        {orderData && (
+          <div
+            className={`absolute top-4 right-4 sm:top-6 sm:right-6 border-4 rounded-lg px-3 py-1.5 sm:px-4 sm:py-2 font-black uppercase tracking-widest text-xs sm:text-sm select-none pointer-events-none ${
+              isPaid
+                ? "border-green-600 text-green-600"
+                : "border-red-500 text-red-500"
+            }`}
+            style={{ transform: "rotate(-8deg)", opacity: 0.85 }}
+          >
+            {isPaid ? "Paid" : "Not Paid"}
+          </div>
+        )}
         <p className="text-center text-gray-600 text-sm mb-2">Order Reference</p>
         <p className="text-center font-mono text-2xl font-bold text-green-700">{ref || "Processing..."}</p>
         {orderData?.createdAt && (
@@ -66,6 +80,11 @@ function SuccessContent() {
           </p>
         )}
         <p className="text-center text-xs text-gray-500 mt-2">Save this number — you'll need it for order tracking</p>
+        {isCod && !isPaid && (
+          <p className="text-center text-xs font-semibold text-red-500 mt-3">
+            💵 Cash on Delivery — have GHc{orderData ? Number(orderData.total).toFixed(2) : "—"} ready for the courier. This receipt will update to “Paid” once payment is confirmed.
+          </p>
+        )}
       </div>
 
       {/* Order Status Timeline */}

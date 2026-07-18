@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ShoppingBag, X } from "lucide-react";
+import { toast } from "sonner";
 import { AnnouncementBar } from "../components/AnnouncementBar";
 import { Header } from "../components/Header";
 import { Hero } from "../components/Hero";
@@ -17,6 +18,7 @@ import { Cart } from "../components/Cart";
 import { CheckoutModal } from "../components/CheckoutModal";
 import { ProductModal } from "../components/ProductModal";
 import { LoginModal } from "../components/LoginModal";
+import { SignupModal } from "../components/SignupModal";
 import { Dashboard } from "../components/Dashboard";
 import { AdminPanel } from "../components/AdminPanel";
 import { BrandsMarquee } from "../components/BrandsMarquee";
@@ -62,6 +64,11 @@ function HomeContent() {
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [signupOpen, setSignupOpen] = useState(false);
+  // Prefills the login form's email after a successful signup, and lets the
+  // login handler know it should resume straight into checkout once signed in.
+  const [prefillLoginEmail, setPrefillLoginEmail] = useState<string | null>(null);
+  const [resumeCheckoutAfterLogin, setResumeCheckoutAfterLogin] = useState(false);
   const [currentPage, setCurrentPage] = useState<Page>("home");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [showCartToast, setShowCartToast] = useState(false);
@@ -113,10 +120,24 @@ function HomeContent() {
     }
   };
 
-  // Cart requests checkout: close cart, then open checkout modal
+  // Cart requests checkout: an account is required before checking out.
+  // Logged-in buyers go straight through; guests are sent to sign up first,
+  // then must explicitly log in (no auto-login) before checkout re-opens.
   const handleCheckoutRequest = () => {
     setCartOpen(false);
+    if (!currentUser) {
+      setResumeCheckoutAfterLogin(true);
+      setSignupOpen(true);
+      toast.message("Please create an account to check out.");
+      return;
+    }
     setCheckoutOpen(true);
+  };
+
+  const handleAccountCreated = (email: string) => {
+    setSignupOpen(false);
+    setPrefillLoginEmail(email);
+    setLoginOpen(true);
   };
 
   const handleLogin = (user: { email: string; name: string; role: string; }, token: string) => {
@@ -124,8 +145,19 @@ function HomeContent() {
     setCurrentUser(authUser);
     localStorage.setItem("token", token);
     setLoginOpen(false);
+    setPrefillLoginEmail(null);
+    toast.success(`Welcome, ${authUser.name}!`);
+
     if (authUser.role === "admin" || authUser.role === "manager") {
       setCurrentPage("admin");
+      return;
+    }
+
+    // Customer: if they logged in specifically to resume checkout, take them
+    // straight back into it instead of the dashboard.
+    if (resumeCheckoutAfterLogin) {
+      setResumeCheckoutAfterLogin(false);
+      setCheckoutOpen(true);
     } else {
       setCurrentPage("dashboard");
     }
@@ -249,8 +281,16 @@ function HomeContent() {
 
       <LoginModal
         open={loginOpen}
-        onClose={() => setLoginOpen(false)}
+        onClose={() => { setLoginOpen(false); setPrefillLoginEmail(null); setResumeCheckoutAfterLogin(false); }}
         onLogin={handleLogin}
+        prefillEmail={prefillLoginEmail ?? undefined}
+      />
+
+      <SignupModal
+        open={signupOpen}
+        onClose={() => { setSignupOpen(false); setResumeCheckoutAfterLogin(false); }}
+        onAccountCreated={handleAccountCreated}
+        onSwitchToLogin={() => { setSignupOpen(false); setLoginOpen(true); }}
       />
 
       {showCartToast && (

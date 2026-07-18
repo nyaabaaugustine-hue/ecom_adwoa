@@ -132,6 +132,50 @@ export async function registerCustomerAccount(
   return { user, token };
 }
 
+/**
+ * Creates a brand-new customer account BEFORE any order exists — used by
+ * the pre-checkout signup flow (SignupModal). Unlike registerCustomerAccount
+ * (which only completes an existing guest-checkout row), this always inserts
+ * a new customers row. Fails if the email is already taken.
+ */
+export async function createCustomerAccount(
+  name: string,
+  email: string,
+  password: string,
+  phone?: string
+): Promise<{ user: AuthUser; token: string } | { error: string; status: number }> {
+  const db = getDb();
+
+  const existing = await db.select().from(customers).where(eq(customers.email, email)).limit(1);
+  if (existing[0]) {
+    if (existing[0].passwordHash) {
+      return { error: "An account already exists for this email. Please log in instead.", status: 409 };
+    }
+    // A guest-checkout row exists (from a prior order) but has no password —
+    // complete it rather than creating a duplicate customer.
+    const passwordHash = await bcrypt.hash(password, 10);
+    const updated = await db
+      .update(customers)
+      .set({ passwordHash, name: name || existing[0].name, phone: phone ?? existing[0].phone, updatedAt: sql`NOW()` })
+      .where(eq(customers.id, existing[0].id))
+      .returning();
+    const row = updated[0];
+    const user: AuthUser = { id: row.id, email: row.email, name: row.name, role: (row.role as UserRole) || "customer" };
+    return { user, token: generateToken(user) };
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const inserted = await db
+    .insert(customers)
+    .values({ name, email, phone: phone ?? null, passwordHash, role: "customer" })
+    .returning();
+  const row = inserted[0];
+
+  const user: AuthUser = { id: row.id, email: row.email, name: row.name, role: (row.role as UserRole) || "customer" };
+  const token = generateToken(user);
+  return { user, token };
+}
+
 const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
   admin: [
     "view_dashboard", "manage_products", "manage_orders", "manage_customers",
