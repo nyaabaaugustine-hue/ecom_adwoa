@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { fetchOrders } from "@/server/ecommerce";
-import { requireRole } from "@/lib/auth-utils";
+import { fetchOrders, fetchOrdersByCustomerId } from "@/server/ecommerce";
+import { requireAuth } from "@/lib/auth-utils";
+import { hasPermission, type UserRole } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   const reference = req.nextUrl.searchParams.get("reference") ?? undefined;
@@ -19,12 +20,20 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  // Everything else (the full order list) is admin/manager/staff only.
-  const auth = requireRole(req, "manage_orders");
+  // Everything else requires a valid session.
+  const auth = requireAuth(req);
   if (auth instanceof NextResponse) return auth;
 
   try {
-    const rows = await fetchOrders();
+    // Admin/manager/staff see every order (dashboard order management).
+    if (hasPermission(auth.role as UserRole, "manage_orders")) {
+      const rows = await fetchOrders();
+      return NextResponse.json(rows);
+    }
+
+    // A logged-in customer only ever sees their own orders — never the
+    // full list. auth.id is the customers.id set when the JWT was issued.
+    const rows = await fetchOrdersByCustomerId(auth.id);
     return NextResponse.json(rows);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });

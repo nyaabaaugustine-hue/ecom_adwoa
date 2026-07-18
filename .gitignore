@@ -23,6 +23,15 @@ Thumbs.db
 dist/
 build/
 
+# ── Local upload leftovers (uploads now go to Cloudinary) ────────
+public/uploads/
+
+# ── Stray Windows reserved-name files ─────────────────────────────
+nul
+CON
+PRN
+AUX
+
 # ── Logs ─────────────────────────────────────────────────────────
 *.log
 npm-debug.log*

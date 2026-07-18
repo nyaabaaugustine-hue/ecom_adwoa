@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { TrendingUp, TrendingDown, DollarSign, ShoppingBag, Users, Package, AlertCircle, Loader2 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 import { fetchOrders, fetchProducts, fetchCustomers, type Order, type Product, type Customer } from "../lib/store-api";
+import { safeDate } from "../utils/date";
 
 export function AdminOverview() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -35,8 +36,8 @@ export function AdminOverview() {
   const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const monthlyRevenue = monthNames.map((name) => {
     const monthOrders = paidOrders.filter((o) => {
-      const d = new Date(o.createdAt);
-      return monthNames[d.getMonth()] === name;
+      const d = safeDate(o.createdAt);
+      return d ? monthNames[d.getMonth()] === name : false;
     });
     return { name, sales: monthOrders.reduce((s, o) => s + o.total, 0) };
   });

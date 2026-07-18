@@ -105,7 +105,7 @@ export function DashboardSidebar({ user, activeTab, onTabChange, onLogout, hasPe
       {/* Bottom Actions */}
       <div className="p-4 border-t border-gray-100 space-y-2">
         <a
-          href="#"
+          href="/shop"
           className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
         >
           <Store size={18} />

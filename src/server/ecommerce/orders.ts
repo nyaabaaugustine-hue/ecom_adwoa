@@ -1,5 +1,5 @@
 import { getDb } from "@/db";
-import { orders, products } from "@/db/schema";
+import { orders, products, customers } from "@/db/schema";
 import { eq, and, desc, sql } from "drizzle-orm";
 import type { InferInsertModel } from "drizzle-orm";
 
@@ -21,6 +21,15 @@ export async function fetchOrders(reference?: string) {
   return await db
     .select()
     .from(orders)
+    .orderBy(desc(orders.createdAt));
+}
+
+export async function fetchOrdersByCustomerId(customerId: number) {
+  const db = getDb();
+  return await db
+    .select()
+    .from(orders)
+    .where(eq(orders.customerId, customerId))
     .orderBy(desc(orders.createdAt));
 }
 
@@ -73,7 +82,24 @@ export async function updateOrderStatus(orderId: string, status: OrderStatus) {
     })
     .where(eq(orders.id, Number(orderId)))
     .returning();
-  return rows[0] ?? null;
+  const updated = rows[0] ?? null;
+
+  // Keep the linked customer account current: whatever name/phone the
+  // order carries (which may have been edited or entered fresh at
+  // checkout) is folded back onto the account, and its updatedAt is
+  // bumped so "last activity" reflects this order touch.
+  if (updated?.customerId) {
+    await db
+      .update(customers)
+      .set({
+        ...(updated.customerName ? { name: updated.customerName } : {}),
+        ...(updated.customerPhone ? { phone: updated.customerPhone } : {}),
+        updatedAt: sql`NOW()`,
+      })
+      .where(eq(customers.id, updated.customerId));
+  }
+
+  return updated;
 }
 
 export async function createPendingOrder(data: {

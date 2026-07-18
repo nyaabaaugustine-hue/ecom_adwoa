@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
 import { fetchOrders, fetchProducts, fetchCustomers, type Order, type Product, type Customer } from "../lib/store-api";
+import { safeDate } from "../utils/date";
 
 interface DashboardHomeProps {
   hasPermission: (permission: string) => boolean;
@@ -40,8 +41,8 @@ export function DashboardHome({ hasPermission }: DashboardHomeProps) {
   const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const monthlyData = monthNames.map((name) => {
     const monthOrders = paidOrders.filter((o) => {
-      const d = new Date(o.createdAt);
-      return monthNames[d.getMonth()] === name;
+      const d = safeDate(o.createdAt);
+      return d ? monthNames[d.getMonth()] === name : false;
     });
     return {
       name,

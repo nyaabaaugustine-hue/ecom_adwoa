@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Search, Eye, Download, X, CheckCircle, Clock, Truck, XCircle, Package, Loader2 } from "lucide-react";
 import { fetchOrders, updateOrderStatusApi, type Order } from "../lib/store-api";
+import { formatDate, formatDateShort, formatTime } from "../utils/date";
 
 interface OrdersManagerProps {
   hasPermission: (permission: string) => boolean;
@@ -78,8 +79,12 @@ export function OrdersManager({ hasPermission }: OrdersManagerProps) {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-serif font-medium text-gray-800">Orders Management</h1>
-          <p className="text-gray-500 text-sm mt-1">Manage and track all customer orders</p>
+          <h1 className="text-2xl font-serif font-medium text-gray-800">
+            {hasPermission("manage_orders") ? "Orders Management" : "My Orders"}
+          </h1>
+          <p className="text-gray-500 text-sm mt-1">
+            {hasPermission("manage_orders") ? "Manage and track all customer orders" : "Track your order history and delivery status"}
+          </p>
         </div>
       </div>
 
@@ -153,7 +158,7 @@ export function OrdersManager({ hasPermission }: OrdersManagerProps) {
                 <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
                 <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Method</th>
                 <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Date</th>
+                <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider hidden lg:table-cell">Date &amp; Time</th>
                 <th className="text-left px-6 py-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
               </tr>
             </thead>
@@ -196,7 +201,8 @@ export function OrdersManager({ hasPermission }: OrdersManagerProps) {
                     </span>
                   </td>
                   <td className="px-6 py-4 hidden lg:table-cell">
-                    <p className="text-sm text-gray-600">{new Date(order.createdAt).toLocaleDateString()}</p>
+                    <p className="text-sm text-gray-600">{formatDateShort(order.createdAt)}</p>
+                    <p className="text-xs text-gray-400">{formatTime(order.createdAt)}</p>
                   </td>
                   <td className="px-6 py-4">
                     <button
@@ -237,6 +243,15 @@ export function OrdersManager({ hasPermission }: OrdersManagerProps) {
                   <p className="text-gray-800 font-medium">{selectedOrder.customerName || "—"}</p>
                   <p className="text-sm text-gray-600">{selectedOrder.customerEmail}</p>
                   <p className="text-sm text-gray-600">{selectedOrder.customerPhone}</p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-2">Order Placed</h3>
+                  <p className="text-gray-800 font-medium">
+                    {formatDate(selectedOrder.createdAt)}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {formatTime(selectedOrder.createdAt)}
+                  </p>
                 </div>
                 <div>
                   <h3 className="text-sm font-medium text-gray-500 mb-2">Payment</h3>

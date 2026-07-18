@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Search, Mail, Phone, MapPin, ShoppingBag, Loader2 } from "lucide-react";
 import { fetchCustomers, fetchOrders, type Customer, type Order } from "../lib/store-api";
+import { formatDateShort } from "../utils/date";
 
 interface CustomerWithStats extends Customer {
   orderCount: number;
@@ -144,7 +145,7 @@ export function CustomersManager() {
                     <p className="text-sm font-medium text-gray-800">GHc{customer.totalSpent.toLocaleString()}</p>
                   </td>
                   <td className="px-6 py-4 hidden md:table-cell">
-                    <p className="text-sm text-gray-600">{new Date(customer.createdAt).toLocaleDateString()}</p>
+                    <p className="text-sm text-gray-600">{formatDateShort(customer.createdAt)}</p>
                   </td>
                 </tr>
               ))}
@@ -171,7 +172,7 @@ export function CustomersManager() {
                 </div>
                 <div>
                   <h3 className="text-lg font-medium text-gray-800">{selectedCustomer.name || "—"}</h3>
-                  <p className="text-sm text-gray-400">Customer since {new Date(selectedCustomer.createdAt).toLocaleDateString()}</p>
+                  <p className="text-sm text-gray-400">Customer since {formatDateShort(selectedCustomer.createdAt)}</p>
                 </div>
               </div>
               <div className="space-y-4">

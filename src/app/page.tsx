@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useRef, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ShoppingBag, X } from "lucide-react";
 import { AnnouncementBar } from "../components/AnnouncementBar";
 import { Header } from "../components/Header";
@@ -57,6 +57,7 @@ function CartToast({ onOpenCart, onClose }: { onOpenCart: () => void; onClose: (
 
 function HomeContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -65,7 +66,40 @@ function HomeContent() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [showCartToast, setShowCartToast] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [restoringSession, setRestoringSession] = useState(false);
+  const [justPlacedOrderRef, setJustPlacedOrderRef] = useState<string | null>(null);
   const firstAddRef = useRef(false);
+
+  // Post-checkout redirect: CheckoutModal sends the buyer here as
+  // "/?dashboard=1&order=REF" once they have a valid session token (either
+  // just created via the fast account-creation step, or already logged in).
+  // Restore that session from the stored token and drop them into their
+  // customer dashboard, order confirmation ready.
+  useEffect(() => {
+    const wantsDashboard = searchParams.get("dashboard") === "1";
+    const orderRef = searchParams.get("order");
+    if (!wantsDashboard) return;
+
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    setRestoringSession(true);
+    fetch("/api/auth/me", { headers: { Authorization: `Bearer ${token}` } })
+      .then((res) => (res.ok ? res.json() : Promise.reject()))
+      .then(({ user }) => {
+        setCurrentUser({ email: user.email, name: user.name, role: user.role });
+        if (orderRef) setJustPlacedOrderRef(orderRef);
+        setCurrentPage("dashboard");
+      })
+      .catch(() => {
+        localStorage.removeItem("token");
+      })
+      .finally(() => {
+        setRestoringSession(false);
+        router.replace("/");
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { items: cartItems, addItem, removeItem, updateQuantity, clearCart } = useCart();
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
@@ -118,20 +152,41 @@ function HomeContent() {
     }
   };
 
+  if (restoringSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-500 text-sm">Setting up your account…</p>
+        </div>
+      </div>
+    );
+  }
+
   if (currentPage === "admin" && currentUser) {
     return <AdminPanel user={currentUser} onLogout={handleLogout} />;
   }
 
   if (currentPage === "dashboard" && currentUser) {
     return (
-      <Dashboard
-        user={currentUser}
-        onLogout={handleLogout}
-        loggingOut={loggingOut}
-        hasPermission={(permission: string) =>
-          hasPermission(currentUser.role, permission)
-        }
-      />
+      <>
+        {justPlacedOrderRef && (
+          <div className="bg-green-500 text-white text-sm font-medium px-4 py-3 flex items-center justify-center gap-3 relative">
+            <span>🎉 Order placed! Ref: <span className="font-mono font-bold">{justPlacedOrderRef}</span> — track it below.</span>
+            <button onClick={() => setJustPlacedOrderRef(null)} className="absolute right-4 text-white/80 hover:text-white">
+              <X size={16} />
+            </button>
+          </div>
+        )}
+        <Dashboard
+          user={currentUser}
+          onLogout={handleLogout}
+          loggingOut={loggingOut}
+          hasPermission={(permission: string) =>
+            hasPermission(currentUser.role, permission)
+          }
+        />
+      </>
     );
   }
 
@@ -175,10 +230,12 @@ function HomeContent() {
         items={cartItems}
         total={cartTotal}
         onClose={() => setCheckoutOpen(false)}
-        onSuccess={(ref) => {
+        onSuccess={() => {
+          // Routing (to the customer dashboard or the plain order-confirmation
+          // page) is handled inside CheckoutModal itself via finalizeRedirect,
+          // since it depends on whether a session token exists at that point.
           clearCart();
           setCheckoutOpen(false);
-          router.push(`/checkout/success?ref=${ref}`);
         }}
       />
 
@@ -209,7 +266,9 @@ function HomeContent() {
 export default function Home() {
   return (
     <CartProvider>
-      <HomeContent />
+      <Suspense fallback={null}>
+        <HomeContent />
+      </Suspense>
     </CartProvider>
   );
 }

@@ -81,17 +81,20 @@ function normalizeOrder(row: any): Order {
   return {
     id: Number(row.id),
     reference: row.reference,
-    customerName: row.customer_name ?? "",
-    customerEmail: row.customer_email ?? "",
-    customerPhone: row.customer_phone ?? row.customer_phone_lookup ?? "",
+    // Drizzle returns rows keyed by the schema's TS field names (camelCase),
+    // not the raw snake_case SQL column names — read camelCase first, and
+    // fall back to snake_case only in case a raw SQL row is ever passed in.
+    customerName: row.customerName ?? row.customer_name ?? "",
+    customerEmail: row.customerEmail ?? row.customer_email ?? "",
+    customerPhone: row.customerPhone ?? row.customer_phone ?? "",
     items,
     subtotal: Number(row.subtotal ?? 0),
     total: Number(row.total ?? 0),
     status: row.status ?? "pending",
-    paymentStatus: row.payment_status ?? "unpaid",
-    paymentMethod: row.payment_method ?? "paystack",
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
+    paymentStatus: row.paymentStatus ?? row.payment_status ?? "unpaid",
+    paymentMethod: row.paymentMethod ?? row.payment_method ?? "paystack",
+    createdAt: row.createdAt ?? row.created_at,
+    updatedAt: row.updatedAt ?? row.updated_at,
   };
 }
 
@@ -102,7 +105,7 @@ function normalizeCustomer(row: any): Customer {
     email: row.email,
     phone: row.phone ?? "",
     address: row.address ?? "",
-    createdAt: row.created_at,
+    createdAt: row.createdAt ?? row.created_at,
   };
 }
 

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { generateReference } from "@/lib/paystack";
-import { upsertCustomer, createPendingOrder, createCodOrder } from "@/server/ecommerce";
+import { upsertCustomer, fetchCustomerByEmail, createPendingOrder, createCodOrder } from "@/server/ecommerce";
 
 // NOTE: intentionally public — this is the guest checkout endpoint.
 // Customers are never logged in when they buy, so requiring a Bearer
@@ -30,6 +30,15 @@ export async function POST(req: NextRequest) {
     const { email, name, phone, address, notes, method, items, total } = parsed;
 
     const reference = generateReference();
+
+    // Check BEFORE upsert whether this email already has a real account
+    // (a password set) — upsertCustomer below will create/refresh the row
+    // either way (guest checkout always needs a customer record to attach
+    // the order to), but only a first-time buyer should be prompted to
+    // create an account after the order goes through.
+    const existingCustomer = await fetchCustomerByEmail(email);
+    const needsAccount = !existingCustomer?.passwordHash;
+
     const customer = await upsertCustomer({ name, email, phone, address });
 
     // Normalize snake_case product_id (from the client cart) to the
@@ -55,7 +64,7 @@ export async function POST(req: NextRequest) {
         subtotal: total,
         total,
       });
-      return NextResponse.json({ reference, method: "cod" });
+      return NextResponse.json({ reference, method: "cod", needsAccount });
     }
 
     await createPendingOrder({
@@ -69,7 +78,7 @@ export async function POST(req: NextRequest) {
       total,
     });
 
-    return NextResponse.json({ reference, method: "paystack" });
+    return NextResponse.json({ reference, method: "paystack", needsAccount });
   } catch (err: any) {
     if (err instanceof z.ZodError) {
       return NextResponse.json({ error: err.issues }, { status: 400 });

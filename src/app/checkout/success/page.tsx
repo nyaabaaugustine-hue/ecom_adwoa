@@ -7,6 +7,7 @@ import { CheckCircle, Package, Truck, Clock, ArrowRight } from "lucide-react";
 import { Footer } from "@/components/Footer";
 import { StaticHeader } from "@/components/StaticHeader";
 import { AnnouncementBar } from "@/components/AnnouncementBar";
+import { formatDate, formatTime } from "@/utils/date";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
@@ -34,7 +35,7 @@ function SuccessContent() {
     fetchOrder();
   }, [ref]);
 
-  const isCod = orderData?.payment_method === "cod";
+  const isCod = orderData?.paymentMethod === "cod";
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
@@ -57,6 +58,13 @@ function SuccessContent() {
       <div className="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-2xl p-8 mb-8">
         <p className="text-center text-gray-600 text-sm mb-2">Order Reference</p>
         <p className="text-center font-mono text-2xl font-bold text-green-700">{ref || "Processing..."}</p>
+        {orderData?.createdAt && (
+          <p className="text-center text-sm text-gray-500 mt-2">
+            Placed on {formatDate(orderData.createdAt)}
+            {" · "}
+            {formatTime(orderData.createdAt)}
+          </p>
+        )}
         <p className="text-center text-xs text-gray-500 mt-2">Save this number — you'll need it for order tracking</p>
       </div>
 

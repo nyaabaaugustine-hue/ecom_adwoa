@@ -1,15 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import crypto from "crypto";
 import { requireRole } from "@/lib/auth-utils";
 
-// IMPORTANT (production note): this writes to the local filesystem, which
-// works for `npm run dev` / a traditional Node server, but Vercel and most
-// serverless hosts have an EPHEMERAL, READ-ONLY filesystem outside /tmp —
-// files written here will vanish (or the write will fail) after the
-// function instance recycles. Before deploying to Vercel, swap this for a
-// real upload target (e.g. Cloudinary's upload API — credentials are
-// already in .env) so product images persist.
+// Vercel (and most serverless hosts) have an EPHEMERAL, READ-ONLY
+// filesystem outside /tmp — writing to /public/uploads works in
+// `npm run dev` but silently fails (or vanishes on the next cold start)
+// in production. Uploads go straight to Cloudinary instead, which is
+// durable, CDN-backed, and already used for image delivery elsewhere
+// in the app (see components/cloudinary.ts).
 
 const ALLOWED_TYPES: Record<string, string> = {
   "image/jpeg": "jpg",
@@ -23,6 +21,17 @@ export async function POST(request: NextRequest) {
   const auth = requireRole(request, "manage_products");
   if (auth instanceof NextResponse) return auth;
 
+  const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+  const apiKey = process.env.CLOUDINARY_API_KEY;
+  const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    return NextResponse.json(
+      { error: "Image upload is not configured. Missing Cloudinary credentials." },
+      { status: 500 }
+    );
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
@@ -31,8 +40,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    const ext = ALLOWED_TYPES[file.type];
-    if (!ext) {
+    if (!ALLOWED_TYPES[file.type]) {
       return NextResponse.json(
         { error: "Unsupported file type. Use JPG, PNG, WEBP or GIF." },
         { status: 400 }
@@ -45,14 +53,38 @@ export async function POST(request: NextRequest) {
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const dir = path.join(process.cwd(), "public", "uploads");
-    const filepath = path.join(dir, filename);
+    const timestamp = Math.round(Date.now() / 1000);
+    const folder = "adwoas-beauty/products";
 
-    await mkdir(dir, { recursive: true });
-    await writeFile(filepath, buffer);
+    // Cloudinary signed upload: sign every param EXCEPT file/api_key/
+    // cloud_name/resource_type, sorted alphabetically, as "key=value" pairs
+    // joined by "&", with the API secret appended — see Cloudinary docs
+    // on generating an upload signature.
+    const paramsToSign = `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
+    const signature = crypto.createHash("sha1").update(paramsToSign).digest("hex");
 
-    return NextResponse.json({ url: `/uploads/${filename}` });
+    const cloudinaryForm = new FormData();
+    cloudinaryForm.append("file", new Blob([buffer], { type: file.type }), file.name);
+    cloudinaryForm.append("api_key", apiKey);
+    cloudinaryForm.append("timestamp", String(timestamp));
+    cloudinaryForm.append("folder", folder);
+    cloudinaryForm.append("signature", signature);
+
+    const uploadRes = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+      { method: "POST", body: cloudinaryForm }
+    );
+
+    if (!uploadRes.ok) {
+      const errBody = await uploadRes.json().catch(() => ({}));
+      return NextResponse.json(
+        { error: errBody?.error?.message ?? "Cloudinary upload failed" },
+        { status: 502 }
+      );
+    }
+
+    const data = await uploadRes.json();
+    return NextResponse.json({ url: data.secure_url as string });
   } catch {
     return NextResponse.json({ error: "Upload failed" }, { status: 500 });
   }

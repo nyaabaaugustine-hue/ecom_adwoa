@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { getDb } from "@/db";
 import { customers } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 export type UserRole = "admin" | "manager" | "staff" | "customer";
 
@@ -91,6 +91,45 @@ export async function authenticateUser(
   } catch {
     return null;
   }
+}
+
+/**
+ * Completes an account for a customer row that already exists (created
+ * during guest checkout via upsertCustomer) but has no password yet.
+ * Used by the post-order "fast account creation" flow — never creates a
+ * brand-new customer row, and never overwrites an existing password.
+ */
+export async function registerCustomerAccount(
+  email: string,
+  password: string
+): Promise<{ user: AuthUser; token: string } | { error: string; status: number }> {
+  const db = getDb();
+  const rows = await db.select().from(customers).where(eq(customers.email, email)).limit(1);
+  const customer = rows[0];
+
+  if (!customer) {
+    return { error: "No order found for this email yet.", status: 404 };
+  }
+  if (customer.passwordHash) {
+    return { error: "An account already exists for this email. Please log in instead.", status: 409 };
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+  const updated = await db
+    .update(customers)
+    .set({ passwordHash, updatedAt: sql`NOW()` })
+    .where(eq(customers.id, customer.id))
+    .returning();
+  const row = updated[0];
+
+  const user: AuthUser = {
+    id: row.id,
+    email: row.email,
+    name: row.name,
+    role: (row.role as UserRole) || "customer",
+  };
+  const token = generateToken(user);
+  return { user, token };
 }
 
 const ROLE_PERMISSIONS: Record<UserRole, string[]> = {

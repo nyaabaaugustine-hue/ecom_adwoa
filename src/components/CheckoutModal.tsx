@@ -17,7 +17,7 @@ interface CheckoutModalProps {
 }
 
 type PaymentMethod = "card" | "momo_mtn" | "momo_telecel" | "momo_at" | "cod" | null;
-type PaymentStep = "form" | "method" | "payment" | "success" | "error";
+type PaymentStep = "form" | "method" | "payment" | "success" | "account" | "error";
 
 const TEST_CARD = { number: "4084 0843 6020 0522", expiry: "01/99", cvv: "408", pin: "0000", otp: "123456" };
 const TEST_MOMO = { number: "0551234987", otp: "123456" };
@@ -123,6 +123,14 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
   const [reference, setReference] = useState("");
   const [momoPhone, setMomoPhone] = useState(TEST_MOMO.number);
 
+  // Post-order account creation — set from /api/payment/initialize's
+  // `needsAccount` flag (true when this email has never had a password set).
+  const [needsAccount, setNeedsAccount] = useState(false);
+  const [accountPassword, setAccountPassword] = useState("");
+  const [accountPassword2, setAccountPassword2] = useState("");
+  const [accountError, setAccountError] = useState("");
+  const [creatingAccount, setCreatingAccount] = useState(false);
+
   const [formData, setFormData] = useState({ name: "", email: "", phone: "", address: "", notes: "" });
 
   if (!isOpen) return null;
@@ -188,13 +196,20 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
         }),
       });
       if (!initRes.ok) { const b = await initRes.json().catch(() => ({})); throw new Error(b.error || "Could not place order."); }
-      const { reference: ref } = await initRes.json();
+      const { reference: ref, needsAccount: needsAcct } = await initRes.json();
 
       setLoading(false);
       setReference(ref);
+      setNeedsAccount(!!needsAcct);
       setStep("success");
       clearCart();
-      setTimeout(() => { onSuccess(ref); router.push(`/checkout/success?ref=${ref}`); handleClose(); }, 2000);
+      setTimeout(() => {
+        if (needsAcct) {
+          setStep("account");
+        } else {
+          finalizeRedirect(ref);
+        }
+      }, 1800);
     } catch (err: any) {
       setLoading(false);
       setError(err.message || "Could not place order.");
@@ -217,8 +232,9 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
         body: JSON.stringify({ method: "paystack", name: formData.name, email: formData.email, phone: paymentMethod !== "card" ? momoPhone : formData.phone, address: formData.address, items: items.map((i) => ({ product_id: i.id, name: i.name, price: i.price, quantity: i.quantity })), total }),
       });
       if (!initRes.ok) { const b = await initRes.json().catch(() => ({})); throw new Error(b.error || "Could not create order."); }
-      const { reference: ref } = await initRes.json();
+      const { reference: ref, needsAccount: needsAcct } = await initRes.json();
       setReference(ref);
+      setNeedsAccount(!!needsAcct);
 
       // Ensure Paystack script is loaded (handles PWA standalone mode)
       try {
@@ -240,7 +256,13 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
         callback: async (tx: { reference: string }) => {
           await fetch(`/api/payment/verify?reference=${tx.reference}&popup=true`).catch(() => {});
           setStep("success"); setReference(tx.reference); clearCart();
-          setTimeout(() => { onSuccess(tx.reference); router.push(`/checkout/success?ref=${tx.reference}`); handleClose(); }, 2000);
+          setTimeout(() => {
+            if (needsAcct) {
+              setStep("account");
+            } else {
+              finalizeRedirect(tx.reference);
+            }
+          }, 1800);
         },
         onClose: () => { setLoading(false); setError("Payment cancelled. Try again whenever you're ready."); },
       }).openIframe();
@@ -251,11 +273,55 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
     }
   };
 
+  // Called once we're fully done — order placed, and (if needed) account
+  // created. Sends the buyer to their customer dashboard when we have a
+  // logged-in session (just created, or already logged in beforehand);
+  // otherwise falls back to the plain order-confirmation page.
+  const finalizeRedirect = (ref: string) => {
+    onSuccess(ref);
+    const hasToken = typeof window !== "undefined" && !!localStorage.getItem("token");
+    if (hasToken) {
+      router.push(`/?dashboard=1&order=${ref}`);
+    } else {
+      router.push(`/checkout/success?ref=${ref}`);
+    }
+    handleClose();
+  };
+
+  const handleCreateAccount = async (e: React.FormEvent | React.MouseEvent) => {
+    e.preventDefault();
+    setAccountError("");
+
+    if (accountPassword.length < 6) { setAccountError("Password must be at least 6 characters."); return; }
+    if (accountPassword !== accountPassword2) { setAccountError("Passwords don't match."); return; }
+
+    setCreatingAccount(true);
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: formData.email, password: accountPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Could not create your account.");
+
+      localStorage.setItem("token", data.token);
+      setCreatingAccount(false);
+      setStep("success"); // clears the "account" guard so handleClose can run
+      finalizeRedirect(reference);
+    } catch (err: any) {
+      setCreatingAccount(false);
+      setAccountError(err.message || "Could not create your account.");
+    }
+  };
+
   const handleClose = () => {
-    if (loading) return;
+    if (loading || creatingAccount) return;
+    if (step === "account") return; // account creation is required before closing
     setStep("form"); setPaymentMethod(null);
     setFormData({ name: "", email: "", phone: "", address: "", notes: "" });
     setMomoPhone(TEST_MOMO.number); setError(""); setReference("");
+    setNeedsAccount(false); setAccountPassword(""); setAccountPassword2(""); setAccountError("");
     onClose();
   };
 
@@ -292,6 +358,7 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
               {step === "method" && "Choose Payment"}
               {step === "payment" && (isCod ? "Confirm Order" : "Confirm & Pay")}
               {step === "success" && "Order Placed!"}
+              {step === "account" && "Create Your Account"}
               {step === "error" && (isCod ? "Order Failed" : "Payment Failed")}
             </h2>
             {["form", "method", "payment"].includes(step) && (
@@ -299,9 +366,12 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
             )}
           </div>
 
-          <button onClick={handleClose} disabled={loading} className="p-2 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-40">
-            <X size={18} className="text-gray-500" />
-          </button>
+          {step !== "account" && (
+            <button onClick={handleClose} disabled={loading} className="p-2 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-40">
+              <X size={18} className="text-gray-500" />
+            </button>
+          )}
+          {step === "account" && <div className="w-9" />}
         </div>
 
         {/* Progress bar */}
@@ -503,8 +573,43 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
                 <h3 className="text-2xl font-bold text-gray-800">{isCod ? "Order Placed!" : "Payment Successful!"}</h3>
                 <p className="text-gray-500 text-sm">Ref: <span className="font-mono font-bold text-gray-800">{reference}</span></p>
                 {isCod && <p className="text-xs text-gray-500">Have GHc{total.toFixed(2)} ready in cash for the courier.</p>}
-                <p className="text-xs text-gray-400 animate-pulse">Redirecting to your order confirmation…</p>
+                <p className="text-xs text-gray-400 animate-pulse">
+                  {needsAccount ? "One quick step — let's set up your account…" : "Redirecting to your order confirmation…"}
+                </p>
               </div>
+            )}
+
+            {/* ACCOUNT CREATION (forced for first-time buyers) */}
+            {step === "account" && (
+              <form onSubmit={handleCreateAccount} className="space-y-4">
+                <div className="text-center mb-2">
+                  <div className="w-16 h-16 bg-pink-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <Shield size={28} className="text-pink-500" />
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    Set a password to save this order to an account — you'll be able to track it, see order history, and check out faster next time.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Email</label>
+                  <input type="email" value={formData.email} disabled
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm bg-gray-100 text-gray-500" />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Create Password</label>
+                  <input type="password" value={accountPassword} onChange={(e) => setAccountPassword(e.target.value)} placeholder="At least 6 characters" autoFocus
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 text-sm bg-gray-50 focus:bg-white"
+                    style={{ "--tw-ring-color": "var(--color-primary,#ec4899)" } as any} />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-600 mb-1.5 uppercase tracking-wide">Confirm Password</label>
+                  <input type="password" value={accountPassword2} onChange={(e) => setAccountPassword2(e.target.value)} placeholder="Re-enter password"
+                    className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 text-sm bg-gray-50 focus:bg-white"
+                    style={{ "--tw-ring-color": "var(--color-primary,#ec4899)" } as any} />
+                </div>
+                {accountError && <ErrorBanner message={accountError} />}
+              </form>
             )}
 
             {/* ERROR */}
@@ -547,6 +652,14 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
           )}
           {step === "success" && (
             <button onClick={handleClose} className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 rounded-xl text-sm">Close</button>
+          )}
+          {step === "account" && (
+            <button onClick={handleCreateAccount} disabled={creatingAccount}
+              className="flex-1 text-white font-bold py-3.5 rounded-xl transition-all text-sm hover:opacity-90 disabled:opacity-60 flex items-center justify-center gap-2 shadow-lg"
+              style={{ background: "linear-gradient(135deg, var(--color-primary,#ec4899), var(--color-primary-dark,#db2777))" }}>
+              {creatingAccount && <Loader size={16} className="animate-spin" />}
+              {creatingAccount ? "Creating account…" : "Create Account & View My Orders"}
+            </button>
           )}
         </div>
       </div>
