@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -115,6 +115,7 @@ function CredentialRow({ label, value, mono }: { label: string; value: string; m
 export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: CheckoutModalProps) {
   const router = useRouter();
   const { clearCart } = useCart();
+  const paystackFormRef = useRef<HTMLFormElement>(null);
 
   const [step, setStep] = useState<PaymentStep>("form");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(null);
@@ -173,7 +174,13 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
       script.src = "https://js.paystack.co/v1/inline.js";
       script.onload = () => resolve();
       script.onerror = () => reject(new Error("Could not load payment script. Check your connection."));
-      document.head.appendChild(script);
+      // Paystack's inline.js requires the script (and the popup trigger) to
+      // live inside a <form> — every official Paystack example does this,
+      // even for the pure-JS PaystackPop.setup() popup method. Appending to
+      // document.head throws "Please put your Paystack Inline javascript
+      // file inside of a form element". We keep a permanently-rendered,
+      // hidden <form> (see JSX below) just to satisfy this.
+      (paystackFormRef.current ?? document.head).appendChild(script);
     });
   };
 
@@ -333,6 +340,11 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
 
   return (
     <>
+      {/* Permanently-rendered, hidden form — required so Paystack's
+          inline.js doesn't throw "Please put your Paystack Inline
+          javascript file inside of a form element" when it loads. */}
+      <form ref={paystackFormRef} onSubmit={(e) => e.preventDefault()} style={{ display: "none" }} aria-hidden="true" />
+
       <div className="fixed inset-0 bg-black/65 z-50 backdrop-blur-sm" onClick={handleClose} />
 
       <div className="fixed inset-2 md:inset-12 lg:inset-20 xl:inset-28 bg-white z-50 rounded-3xl shadow-2xl overflow-hidden flex flex-col" style={{ maxWidth: 680, margin: "auto" }}>
