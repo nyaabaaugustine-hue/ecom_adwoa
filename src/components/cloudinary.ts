@@ -7,6 +7,17 @@ export function getSafeImageUrl(src: string, width?: number): string {
     return FALLBACK_IMAGE;
   }
 
+  // Locally-uploaded image from BEFORE the Cloudinary migration
+  // ("/api/upload" used to write to public/uploads => "/uploads/xyz.jpg").
+  // public/uploads is gitignored and Vercel's filesystem is ephemeral, so
+  // these paths are guaranteed to 404 in production. Fall back immediately
+  // instead of requesting a file that will never exist. New uploads go to
+  // Cloudinary and return a full https://res.cloudinary.com/... URL, which
+  // is handled further below and unaffected by this.
+  if (src.startsWith('/uploads/')) {
+    return FALLBACK_IMAGE;
+  }
+
   // Locally-uploaded image (from /api/upload => "/uploads/xyz.jpg") — serve as-is,
   // Next/Image handles local /public paths natively without needing remotePatterns.
   if (src.startsWith('/')) {

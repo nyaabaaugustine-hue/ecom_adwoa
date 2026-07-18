@@ -10,6 +10,8 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=800&h=800&fit=crop&q=80';
+
 interface SafeImageProps extends Omit<ImageProps, "src"> {
   src: string;
   alt: string;
@@ -28,11 +30,19 @@ export function SafeImage({
   ...props
 }: SafeImageProps) {
   const [isLoading, setLoading] = useState(true);
+  const [errored, setErrored] = useState(false);
 
   const safeSrc = useMemo(() => {
     const w = width && !fill ? Number(width) : undefined;
     return getSafeImageUrl(src, w);
   }, [src, width, fill]);
+
+  // If the primary source ever fails to load (dead path, blocked domain,
+  // timeout, rate limit, etc.) fall back to a stock image instead of
+  // leaving the loading shimmer spinning forever with nothing rendered —
+  // that "stuck shimmer, nothing shows" state is what "images not
+  // rendering" looks like from the outside.
+  const displaySrc = errored ? FALLBACK_IMAGE : safeSrc;
 
   return (
     <div
@@ -51,7 +61,8 @@ export function SafeImage({
       )}
 
       <Image
-        src={safeSrc}
+        key={displaySrc}
+        src={displaySrc}
         alt={alt}
         width={fill ? undefined : width}
         height={fill ? undefined : height}
@@ -59,6 +70,15 @@ export function SafeImage({
         sizes={sizes || "100vw"}
         fetchPriority={fetchPriority}
         onLoad={() => setLoading(false)}
+        onError={() => {
+          if (!errored) {
+            setErrored(true);
+          } else {
+            // Fallback itself failed too (e.g. offline) — stop the shimmer
+            // rather than spin forever.
+            setLoading(false);
+          }
+        }}
         className={cn(
           "duration-700 ease-in-out",
           className,
