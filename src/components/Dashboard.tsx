@@ -14,6 +14,7 @@ interface DashboardProps {
   user: User;
   onLogout: () => void;
   hasPermission?: (permission: string) => boolean;
+  loggingOut?: boolean;
 }
 
 const defaultPermissions: Record<string, string[]> = {
@@ -35,9 +36,10 @@ const defaultPermissions: Record<string, string[]> = {
     "manage_orders",
   ],
   staff: ["view_orders", "view_products"],
+  customer: ["view_orders"],
 };
 
-export function Dashboard({ user, onLogout, hasPermission }: DashboardProps) {
+export function Dashboard({ user, onLogout, hasPermission, loggingOut }: DashboardProps) {
   const [activeTab, setActiveTab] = useState("dashboard");
 
   const defaultHasPermission = (permission: string): boolean => {
@@ -94,6 +96,7 @@ export function Dashboard({ user, onLogout, hasPermission }: DashboardProps) {
         onTabChange={setActiveTab}
         onLogout={onLogout}
         hasPermission={checkPermission}
+        loggingOut={loggingOut}
       />
       <main className="flex-1 overflow-auto">{renderContent()}</main>
     </div>

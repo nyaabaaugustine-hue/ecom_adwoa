@@ -2,8 +2,8 @@
  * GET /api/payment/verify?reference=ADWOA-xxx[&popup=true]
  */
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
 import { verifyPayment } from "@/lib/paystack";
+import { markOrderPaid, markOrderFailed } from "@/server/ecommerce";
 
 export async function GET(req: NextRequest) {
   const reference = req.nextUrl.searchParams.get("reference");
@@ -17,27 +17,14 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const sql = getDb();
     const result = await verifyPayment(reference);
 
     if (result.data.status === "success") {
-      await sql`
-        UPDATE orders
-        SET payment_status = 'paid',
-            status         = 'processing',
-            paystack_ref   = ${reference},
-            updated_at     = NOW()
-        WHERE reference = ${reference}
-      `;
+      await markOrderPaid(reference);
       if (isPopup) return NextResponse.json({ status: "success", reference });
       return NextResponse.redirect(new URL(`/checkout/success?ref=${reference}`, req.url));
     } else {
-      await sql`
-        UPDATE orders
-        SET payment_status = 'failed',
-            updated_at     = NOW()
-        WHERE reference = ${reference}
-      `;
+      await markOrderFailed(reference);
       if (isPopup) {
         return NextResponse.json({ status: "failed", message: "Payment not successful" }, { status: 402 });
       }

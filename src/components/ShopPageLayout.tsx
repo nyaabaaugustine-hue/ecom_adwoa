@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Heart, Star, Eye, SlidersHorizontal, Grid, List, ChevronDown, X } from "lucide-react";
 import { AnnouncementBar } from "./AnnouncementBar";
@@ -14,7 +14,7 @@ import { Dashboard } from "./Dashboard";
 import { AdminPanel } from "./AdminPanel";
 import { CartProvider, useCart } from "../context/CartContext";
 import { SafeImage } from "./SafeImage";
-import { products, Product } from "../utils/products";
+import { fetchProducts, type Product } from "../lib/store-api";
 import { User, hasPermission } from "../utils/auth";
 
 type SortOption = "featured" | "price-asc" | "price-desc" | "rating" | "newest";
@@ -42,12 +42,23 @@ function ShopPageInner({ category, title, description, heroBg }: ShopPageInnerPr
   const [currentPage, setCurrentPage] = useState<Page>("shop");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
+  const [products, setProducts]       = useState<Product[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
   const [sort, setSort]               = useState<SortOption>("featured");
   const [priceMax, setPriceMax]       = useState<number>(2000);
   const [favorites, setFavorites]     = useState<number[]>([]);
   const [hovered, setHovered]         = useState<number | null>(null);
   const [gridView, setGridView]       = useState<"grid" | "list">("grid");
   const [filterOpen, setFilterOpen]   = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchProducts()
+      .then((data) => { if (!cancelled) setProducts(data); })
+      .catch(() => { if (!cancelled) setProducts([]); })
+      .finally(() => { if (!cancelled) setLoadingProducts(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   const { items: cartItems, addItem, removeItem, updateQuantity } = useCart();
   const cartCount = cartItems.reduce((s, i) => s + i.quantity, 0);
@@ -71,10 +82,12 @@ function ShopPageInner({ category, title, description, heroBg }: ShopPageInnerPr
   });
 
   // ── Auth ───────────────────────────────────────────────────────
-  const handleLogin = (user: User) => {
-    setCurrentUser(user);
+  const handleLogin = (user: { email: string; name: string; role: string; }, token: string) => {
+    const authUser: User = { email: user.email, name: user.name, role: user.role as User["role"] };
+    setCurrentUser(authUser);
+    localStorage.setItem("token", token);
     setLoginOpen(false);
-    if (user.role === "admin" || user.role === "manager") setCurrentPage("admin");
+    if (authUser.role === "admin" || authUser.role === "manager") setCurrentPage("admin");
     else setCurrentPage("dashboard");
   };
   const handleLogout = () => { setCurrentUser(null); setCurrentPage("shop"); };
@@ -198,7 +211,9 @@ function ShopPageInner({ category, title, description, heroBg }: ShopPageInnerPr
         )}
 
         {/* ── Product Grid ─────────────────────────────────────────── */}
-        {filtered.length === 0 ? (
+        {loadingProducts ? (
+          <div className="text-center py-24 text-gray-400">Loading products…</div>
+        ) : filtered.length === 0 ? (
           <div className="text-center py-24 text-gray-400">
             <p className="text-5xl mb-4">🛍️</p>
             <p className="text-lg font-medium text-gray-600">No products found</p>

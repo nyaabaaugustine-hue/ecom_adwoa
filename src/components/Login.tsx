@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import { ArrowLeft, Eye, EyeOff, Lock, Mail } from "lucide-react";
 
@@ -46,8 +47,8 @@ export function Login({ onLogin, onBack }: LoginProps) {
         <div className="bg-white rounded-2xl shadow-xl p-8">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-pink-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-white font-serif text-2xl font-bold">A</span>
+            <div className="w-16 h-16 mx-auto mb-4">
+              <Image src="https://res.cloudinary.com/dwsl2ktt2/image/upload/v1784297096/adjologo_jhcfap.png" alt="Adwoa's Beauty" width={64} height={64} loading="lazy" className="w-16 h-16 object-contain" />
             </div>
             <h1 className="text-2xl font-serif font-medium text-gray-800">
               Admin Dashboard

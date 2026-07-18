@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Star, Heart, ShoppingBag } from "lucide-react";
-import { products } from "../utils/products";
+import { fetchProducts, type Product } from "../lib/store-api";
 import { SafeImage } from "./SafeImage";
 
 interface FeaturedCarouselProps {
@@ -11,9 +11,16 @@ interface FeaturedCarouselProps {
 
 export function FeaturedCarousel({ onAddToCart }: FeaturedCarouselProps) {
   const [isHovered, setIsHovered] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const positionRef = useRef(0);
   const animationRef = useRef<number>();
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchProducts().then((data) => { if (!cancelled) setProducts(data); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
   const featuredProducts = products.filter(p => p.badge === "New" || p.badge === "Sale" || p.rating >= 4.5).slice(0, 8);
 

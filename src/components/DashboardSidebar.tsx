@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { User } from "../utils/auth";
 import { SafeImage } from "./SafeImage";
 import { 
@@ -11,7 +12,8 @@ import {
   Settings, 
   LogOut,
   Store,
-  Zap
+  Zap,
+  Loader2
 } from "lucide-react";
 
 interface DashboardSidebarProps {
@@ -20,9 +22,10 @@ interface DashboardSidebarProps {
   onTabChange: (tab: string) => void;
   onLogout: () => void;
   hasPermission: (permission: string) => boolean;
+  loggingOut?: boolean;
 }
 
-export function DashboardSidebar({ user, activeTab, onTabChange, onLogout, hasPermission }: DashboardSidebarProps) {
+export function DashboardSidebar({ user, activeTab, onTabChange, onLogout, hasPermission, loggingOut }: DashboardSidebarProps) {
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, permission: 'view_dashboard' },
     { id: 'orders', label: 'Orders', icon: ShoppingBag, permission: 'view_orders' },
@@ -39,9 +42,7 @@ export function DashboardSidebar({ user, activeTab, onTabChange, onLogout, hasPe
       {/* Store Logo */}
       <div className="p-6 border-b border-gray-100">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-pink-400 to-rose-500 rounded-full flex items-center justify-center shadow-md">
-            <span className="text-white font-serif text-lg font-bold">A</span>
-          </div>
+          <Image src="https://res.cloudinary.com/dwsl2ktt2/image/upload/v1784297096/adjologo_jhcfap.png" alt="Adwoa's Beauty" width={40} height={40} loading="lazy" className="w-10 h-10 object-contain flex-shrink-0" />
           <div>
             <h1 className="text-lg font-serif font-bold text-gray-800 leading-tight">Adwoa's</h1>
             <p className="text-[9px] text-pink-400 uppercase tracking-[0.18em] font-semibold">Beauty &amp; Fashion</p>
@@ -112,9 +113,10 @@ export function DashboardSidebar({ user, activeTab, onTabChange, onLogout, hasPe
         </a>
         <button
           onClick={onLogout}
-          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+          disabled={loggingOut}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
         >
-          <LogOut size={18} />
+          {loggingOut ? <Loader2 size={18} className="animate-spin" /> : <LogOut size={18} />}
           Sign Out
         </button>
       </div>

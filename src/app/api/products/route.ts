@@ -1,40 +1,57 @@
-/**
- * GET  /api/products  → list all active products
- * POST /api/products  → create a product (admin only)
- */
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { z } from "zod";
+import { fetchActiveProducts, createProduct } from "@/server/ecommerce";
+import { requireRole } from "@/lib/auth-utils";
 
 export async function GET() {
   try {
-    const sql = getDb();
-    const rows = await sql`
-      SELECT * FROM products WHERE active = TRUE ORDER BY created_at DESC
-    `;
+    const rows = await fetchActiveProducts();
     return NextResponse.json(rows);
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
 
-export async function POST(req: NextRequest) {
-  try {
-    const sql = getDb();
-    const body = await req.json();
-    const { name, brand, price, original_price, category, image, badge, stock, description } = body;
+const nullableOptionalString = z.preprocess(
+  (v) => (v === null || v === "" ? undefined : v),
+  z.string().optional()
+);
+const nullableOptionalPositiveNumber = z.preprocess(
+  (v) => (v === null || v === "" ? undefined : v),
+  z.coerce.number().positive().optional()
+);
 
-    const rows = await sql`
-      INSERT INTO products (name, brand, price, original_price, category, image, badge, stock, description)
-      VALUES (
-        ${name}, ${brand}, ${price},
-        ${original_price ?? null}, ${category},
-        ${image ?? null}, ${badge ?? null},
-        ${stock ?? 0}, ${description ?? ""}
-      )
-      RETURNING *
-    `;
-    return NextResponse.json(rows[0], { status: 201 });
+const createProductSchema = z.object({
+  name: z.string().min(1),
+  brand: z.string().min(1),
+  price: z.coerce.number().positive(),
+  original_price: nullableOptionalPositiveNumber,
+  category: z.string().min(1),
+  image: nullableOptionalString,
+  badge: nullableOptionalString,
+  stock: z.coerce.number().int().min(0).optional(),
+  description: z.string().optional(),
+  active: z.boolean().optional(),
+});
+
+export async function POST(req: NextRequest) {
+  const auth = requireRole(req, "manage_products");
+  if (auth instanceof NextResponse) return auth;
+
+  try {
+    const body = await req.json();
+    const { original_price, ...rest } = createProductSchema.parse(body);
+    const product = await createProduct({
+      ...rest,
+      price: String(rest.price),
+      originalPrice: original_price ? String(original_price) : undefined,
+    });
+    return NextResponse.json(product, { status: 201 });
   } catch (err: any) {
+    if (err instanceof z.ZodError) {
+      const message = err.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
+      return NextResponse.json({ error: message }, { status: 400 });
+    }
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

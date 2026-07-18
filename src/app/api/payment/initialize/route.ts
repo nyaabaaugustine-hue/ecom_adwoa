@@ -1,62 +1,79 @@
-/**
- * POST /api/payment/initialize
- * Body: { email, name, phone, address, items, total }
- */
 import { NextRequest, NextResponse } from "next/server";
-import { getDb } from "@/lib/db";
+import { z } from "zod";
 import { generateReference } from "@/lib/paystack";
+import { upsertCustomer, createPendingOrder, createCodOrder } from "@/server/ecommerce";
+
+// NOTE: intentionally public — this is the guest checkout endpoint.
+// Customers are never logged in when they buy, so requiring a Bearer
+// token here would block every single purchase. Do not add requireAuth.
+
+const checkoutSchema = z.object({
+  email: z.string().email(),
+  name: z.string().min(1),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  notes: z.string().optional(),
+  method: z.enum(["paystack", "cod"]).default("paystack"),
+  items: z.array(z.object({
+    product_id: z.number().optional(),
+    name: z.string(),
+    price: z.number().positive(),
+    quantity: z.number().int().positive(),
+  })).min(1),
+  total: z.number().positive(),
+});
 
 export async function POST(req: NextRequest) {
   try {
-    const sql = getDb();
     const body = await req.json();
-    const { email, name, phone, address, items, total } = body;
-
-    if (!email || !items?.length || !total) {
-      return NextResponse.json(
-        { error: "Missing required fields (email, items, total)" },
-        { status: 400 }
-      );
-    }
+    const parsed = checkoutSchema.parse(body);
+    const { email, name, phone, address, notes, method, items, total } = parsed;
 
     const reference = generateReference();
+    const customer = await upsertCustomer({ name, email, phone, address });
 
-    // Upsert customer
-    await sql`
-      INSERT INTO customers (name, email, phone, address)
-      VALUES (${name ?? ""}, ${email}, ${phone ?? ""}, ${address ?? ""})
-      ON CONFLICT (email) DO UPDATE
-        SET name    = EXCLUDED.name,
-            phone   = EXCLUDED.phone,
-            address = COALESCE(EXCLUDED.address, customers.address)
-    `;
+    // Normalize snake_case product_id (from the client cart) to the
+    // camelCase productId expected internally, so stock actually
+    // decrements when the order is paid / placed.
+    const normalizedItems = items.map((i) => ({
+      productId: i.product_id,
+      name: i.name,
+      price: i.price,
+      quantity: i.quantity,
+    }));
 
-    const customerRows = await sql`
-      SELECT id FROM customers WHERE email = ${email}
-    `;
-    const customer = customerRows[0];
+    if (method === "cod") {
+      await createCodOrder({
+        reference,
+        customerId: customer.id,
+        name,
+        email,
+        phone,
+        address,
+        notes,
+        items: normalizedItems,
+        subtotal: total,
+        total,
+      });
+      return NextResponse.json({ reference, method: "cod" });
+    }
 
-    // Create pending order
-    await sql`
-      INSERT INTO orders (
-        reference, customer_id, customer_name, customer_email,
-        customer_phone, items, subtotal, total, status, payment_status
-      ) VALUES (
-        ${reference},
-        ${customer.id},
-        ${name ?? ""},
-        ${email},
-        ${phone ?? ""},
-        ${JSON.stringify(items)},
-        ${total},
-        ${total},
-        'pending',
-        'unpaid'
-      )
-    `;
+    await createPendingOrder({
+      reference,
+      customerId: customer.id,
+      name,
+      email,
+      phone,
+      items: normalizedItems,
+      subtotal: total,
+      total,
+    });
 
-    return NextResponse.json({ reference });
+    return NextResponse.json({ reference, method: "paystack" });
   } catch (err: any) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: err.issues }, { status: 400 });
+    }
     console.error("[payment/initialize]", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

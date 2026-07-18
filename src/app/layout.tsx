@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Playfair_Display } from "next/font/google";
 import Script from "next/script";
-import { ThemeSwitcher } from "../components/ThemeSwitcher";
 import { PWAProvider } from "../components/PWAProvider";
 import { WhatsAppButton } from "../components/WhatsAppButton";
 import "./globals.css";
@@ -25,7 +24,7 @@ const playfair = Playfair_Display({
 });
 
 const LOGO_URL =
-  "https://res.cloudinary.com/dwsl2ktt2/image/upload/v1778724509/logo_fxelgm.png";
+  "https://res.cloudinary.com/dwsl2ktt2/image/upload/v1784297096/adjologo_jhcfap.png";
 
 export const metadata: Metadata = {
   title: {
@@ -111,7 +110,7 @@ export default function RootLayout({
         {/* Favicon — using Cloudinary logo directly */}
         <link rel="icon" href={LOGO_URL} type="image/png" />
         <link rel="shortcut icon" href={LOGO_URL} type="image/png" />
-        <link rel="apple-touch-icon" href="https://res.cloudinary.com/dwsl2ktt2/image/upload/w_180,h_180,c_fill/v1778724509/logo_fxelgm.png" />
+        <link rel="apple-touch-icon" href="https://res.cloudinary.com/dwsl2ktt2/image/upload/w_180,h_180,c_fill/v1784297096/adjologo_jhcfap.png" />
         {/* PWA / Apple */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -123,8 +122,6 @@ export default function RootLayout({
         <WhatsAppButton />
         {/* PWA install prompt + service-worker registration */}
         <PWAProvider />
-        {/* Global floating theme switcher */}
-        <ThemeSwitcher />
         {/* Paystack Inline JS */}
         <Script
           src="https://js.paystack.co/v1/inline.js"

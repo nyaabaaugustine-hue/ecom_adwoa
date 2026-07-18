@@ -1,6 +1,11 @@
 # Adwoa's Beauty — Go-Live Checklist
 
-## 1. Fill in `.env.local` (one-time, before anything else)
+_Updated after a full audit of the auth/checkout/upload flow. The items marked
+**⚠ REQUIRED** below were broken or insecure and have been fixed in code —
+but the two ⚠ items under "Fill in .env" and "Sync the database" still need
+you to take action before this can go live._
+
+## 1. Fill in `.env` (one-time, before anything else)
 
 | Variable | Where to get it |
 |---|---|
@@ -10,32 +15,43 @@
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME` | [cloudinary.com](https://cloudinary.com) → Dashboard |
 | `CLOUDINARY_API_KEY` | Cloudinary → Settings → API Keys |
 | `CLOUDINARY_API_SECRET` | Cloudinary → Settings → API Keys |
-| `JWT_SECRET` | Run: `openssl rand -base64 32` |
-| `NEXTAUTH_SECRET` | Run: `openssl rand -base64 32` (different value) |
+| `JWT_SECRET` | Already set to a real random value — rotate it again with `openssl rand -base64 32` (or `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`) if it's ever exposed |
+| `NEXTAUTH_SECRET` | Run: `openssl rand -base64 32` (different value) — currently a placeholder, not yet used by any route but fill it in anyway |
 | `NEXT_PUBLIC_APP_URL` | Your real domain e.g. `https://adwoas.com` |
+
+**⚠ REQUIRED — still placeholders, checkout/images will not work until these are real:**
+- `PAYSTACK_SECRET_KEY` / `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` — get **live** keys from dashboard.paystack.com before going live (test keys are fine for a soft launch, but no real money moves with test keys)
+- `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` — from cloudinary.com → Settings → API Keys
 
 ---
 
 ## 2. Install dependencies
 
 ```bash
-cd "C:\Users\TGNE\Pictures\metic"
+cd "C:\Users\TGNE\Documents\ecom"
 npm install
 ```
 
-This will add the missing `@neondatabase/serverless` package.
+---
+
+## 3. Sync the database schema (⚠ REQUIRED — do this before testing admin Settings/Shipping/Discounts/Notifications)
+
+The project now uses **Drizzle ORM** (`src/db/schema.ts`) as the source of truth, not the old `/api/setup` route. The existing migration only covers products/customers/orders — the newer `store_settings`, `shipping_zones`, `discounts`, and `notification_settings` tables were added to the schema but never pushed to Neon. Run:
+
+```bash
+npm run db:generate   # writes a new migration file for the newer tables
+npm run db:migrate    # applies all migrations to DATABASE_URL
+```
+
+(`npm run db:push` also works for a quick dev sync without generating migration files.) Until this runs, the admin dashboard's Settings, Shipping, Discounts, and Notifications tabs will fail with a "relation does not exist" error.
+
+`src/app/api/setup/route.ts` (the older raw-SQL table creator) is now redundant — safe to delete once you've confirmed `db:migrate` works, since every additional public route is one less thing to secure.
 
 ---
 
-## 3. Create the database tables (run ONCE after deploy)
+## 3b. Seed / change the admin accounts
 
-```
-GET https://yourdomain.com/api/setup?secret=<your JWT_SECRET value>
-```
-
-You should get: `{ "success": true, "message": "All tables created" }`
-
-After running, **disable or delete** `src/app/api/setup/route.ts` — it's a security risk in production.
+Admin, manager, and staff logins are hardcoded server-side in `src/lib/auth.ts` (bcrypt-hashed, never sent to the browser) — currently still the demo passwords `admin123` / `manager123` / `staff123`. **Change these before launch**: edit the plaintext strings passed to `bcrypt.hashSync(...)` in that file to real passwords, and remove the "Demo Credentials" box from `src/components/LoginModal.tsx` so real passwords aren't advertised on the login screen.
 
 ---
 

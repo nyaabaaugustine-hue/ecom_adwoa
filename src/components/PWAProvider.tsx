@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { X, Download, Smartphone, Star, Zap, WifiOff, Bell } from "lucide-react";
 import Image from "next/image";
 
-const LOGO_URL = "https://res.cloudinary.com/dwsl2ktt2/image/upload/v1778724509/logo_fxelgm.png";
+const LOGO_URL = "https://res.cloudinary.com/dwsl2ktt2/image/upload/v1784297096/adjologo_jhcfap.png";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -32,6 +32,24 @@ function resetReloadCount() {
   try {
     localStorage.setItem("pwa-reload-count", "0");
   } catch {}
+}
+
+// ── Session dismiss counter (cleared when tab closes) ──────────────────────
+function getDismissCount(): number {
+  try {
+    return parseInt(sessionStorage.getItem("pwa-dismiss-count") || "0", 10);
+  } catch {
+    return 0;
+  }
+}
+function incrementDismissCount(): number {
+  try {
+    const next = getDismissCount() + 1;
+    sessionStorage.setItem("pwa-dismiss-count", String(next));
+    return next;
+  } catch {
+    return 0;
+  }
 }
 
 export function PWAProvider() {
@@ -88,6 +106,10 @@ export function PWAProvider() {
 
     const permanentlyDismissed = localStorage.getItem("pwa-never-show") === "1";
     if (permanentlyDismissed) return;
+
+    // Dismissed twice this session — snooze for the rest of the session
+    const sessionSnoozed = sessionStorage.getItem("pwa-session-snoozed") === "1";
+    if (sessionSnoozed) return;
 
     // Capture beforeinstallprompt
     const handler = (e: Event) => {
@@ -165,6 +187,10 @@ export function PWAProvider() {
 
   const handleDismiss = () => {
     setShowModal(false);
+    const count = incrementDismissCount();
+    if (count >= 2) {
+      sessionStorage.setItem("pwa-session-snoozed", "1");
+    }
   };
 
   const handleNeverShow = () => {
@@ -222,7 +248,7 @@ export function PWAProvider() {
                     boxShadow: "0 0 32px rgba(236,72,153,0.5)",
                   }}
                 >
-                  <Image src={LOGO_URL} alt="Adwoa's Beauty" width={80} height={80} className="object-contain w-full h-full" />
+                  <Image src={LOGO_URL} alt="Adwoa's Beauty" width={80} height={80} loading="lazy" className="object-contain w-full h-full" />
                 </div>
                 {/* Sparkle badge */}
                 <div

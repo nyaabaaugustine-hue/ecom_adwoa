@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Heart, Star, Eye, ArrowRight } from "lucide-react";
-import { products } from "../utils/products";
+import { useEffect, useState } from "react";
+import { Heart, Star, Eye, ArrowRight, Loader2 } from "lucide-react";
 import { SafeImage } from "./SafeImage";
+import { fetchProducts, type Product } from "../lib/store-api";
 
 interface ProductGridProps {
   onProductClick: (product: any) => void;
@@ -11,9 +11,20 @@ interface ProductGridProps {
 }
 
 export function ProductGrid({ onProductClick, onAddToCart }: ProductGridProps) {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [hoveredProduct, setHoveredProduct] = useState<number | null>(null);
   const [favorites, setFavorites] = useState<number[]>([]);
   const [activeFilter, setActiveFilter] = useState("All");
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchProducts()
+      .then((data) => { if (!cancelled) setProducts(data); })
+      .catch(() => { if (!cancelled) setProducts([]); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, []);
 
   const filters = ["All", "Fashion", "Cosmetics", "Skincare", "Hair Care", "Accessories"];
 
@@ -61,6 +72,16 @@ export function ProductGrid({ onProductClick, onAddToCart }: ProductGridProps) {
           </div>
         </div>
 
+        {loading ? (
+          <div className="flex items-center justify-center py-20 text-gray-400">
+            <Loader2 size={28} className="animate-spin" />
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-20 text-gray-400">
+            <p className="text-lg font-medium text-gray-600">No products yet</p>
+            <p className="text-sm mt-1">Add products from the admin dashboard to see them here.</p>
+          </div>
+        ) : (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {filteredProducts.map((product) => (
             <div
@@ -178,12 +199,16 @@ export function ProductGrid({ onProductClick, onAddToCart }: ProductGridProps) {
             </div>
           ))}
         </div>
+        )}
 
         <div className="text-center mt-12">
-          <button className="border border-gray-300 text-gray-700 hover:border-pink-300 hover:text-pink-500 font-medium px-8 py-4 text-sm tracking-wide rounded-md transition-all inline-flex items-center gap-2 group">
+          <a
+            href="/shop"
+            className="border border-gray-300 text-gray-700 hover:border-pink-300 hover:text-pink-500 font-medium px-8 py-4 text-sm tracking-wide rounded-md transition-all inline-flex items-center gap-2 group"
+          >
             VIEW ALL PRODUCTS
             <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-          </button>
+          </a>
         </div>
       </div>
     </section>

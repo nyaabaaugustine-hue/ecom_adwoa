@@ -34,6 +34,8 @@ function SuccessContent() {
     fetchOrder();
   }, [ref]);
 
+  const isCod = orderData?.payment_method === "cod";
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-16">
       {/* Success Header */}
@@ -43,8 +45,12 @@ function SuccessContent() {
             <CheckCircle size={60} className="text-green-500" strokeWidth={1.5} />
           </div>
         </div>
-        <h1 className="text-4xl font-serif font-bold text-gray-800 mb-3">Payment Successful!</h1>
-        <p className="text-lg text-gray-600">Thank you for your order. Your purchase has been confirmed.</p>
+        <h1 className="text-4xl font-serif font-bold text-gray-800 mb-3">{isCod ? "Order Placed!" : "Payment Successful!"}</h1>
+        <p className="text-lg text-gray-600">
+          {isCod
+            ? "Thank you for your order. Please have cash ready for the courier on delivery."
+            : "Thank you for your order. Your purchase has been confirmed."}
+        </p>
       </div>
 
       {/* Order Reference */}
@@ -59,10 +65,10 @@ function SuccessContent() {
         <h2 className="text-xl font-bold text-gray-800 mb-6">Order Status</h2>
         <div className="space-y-4">
           {[
-            { icon: "✓", label: "Order Confirmed", desc: "Payment received and verified", done: true, color: "bg-green-500" },
+            { icon: "✓", label: "Order Confirmed", desc: isCod ? "Order received — pay cash on delivery" : "Payment received and verified", done: true, color: "bg-green-500" },
             { icon: "⏱", label: "Processing", desc: "Your order is being prepared", done: false, pulse: true, color: "bg-blue-500" },
             { icon: "📦", label: "Ready to Ship", desc: "We'll notify you when your items ship", done: false, color: "bg-gray-300" },
-            { icon: "🚚", label: "Delivered", desc: "Package arrives at your location", done: false, color: "bg-gray-300" },
+            { icon: "🚚", label: "Delivered", desc: isCod ? "Pay the courier and receive your package" : "Package arrives at your location", done: false, color: "bg-gray-300" },
           ].map((step) => (
             <div key={step.label} className="flex items-start gap-4">
               <div className={`w-10 h-10 ${step.color} rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 ${step.pulse ? "animate-pulse" : ""}`}>

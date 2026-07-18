@@ -95,9 +95,7 @@ export function Footer() {
           {/* Brand Column */}
           <div className="col-span-2">
             <div className="flex items-center gap-3 mb-5">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-yellow-500 rounded-full flex items-center justify-center shadow-lg flex-shrink-0">
-                <span className="text-gray-900 font-bold text-2xl font-serif">A</span>
-              </div>
+              <Image src="https://res.cloudinary.com/dwsl2ktt2/image/upload/v1784297096/adjologo_jhcfap.png" alt="Adwoa's Beauty" width={48} height={48} loading="lazy" className="w-12 h-12 object-contain flex-shrink-0" />
               <div>
                 <h3 className="font-bold text-xl leading-tight">Adwoa&apos;s</h3>
                 <p className="text-amber-400 text-[9px] uppercase tracking-[0.2em] font-semibold mt-0.5">
@@ -192,7 +190,7 @@ export function Footer() {
                         boxShadow: "0 0 32px rgba(236,72,153,0.4)",
                       }}
                     >
-                      <Image src="https://res.cloudinary.com/dwsl2ktt2/image/upload/v1778724509/logo_fxelgm.png" alt="Adwoa's Beauty" width={96} height={96} className="object-contain w-full h-full" />
+                      <Image src="https://res.cloudinary.com/dwsl2ktt2/image/upload/v1784297096/adjologo_jhcfap.png" alt="Adwoa's Beauty" width={96} height={96} loading="lazy" className="object-contain w-full h-full" />
                     </div>
                     {/* Sparkle badge */}
                     <div

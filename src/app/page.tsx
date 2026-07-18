@@ -21,7 +21,7 @@ import { Dashboard } from "../components/Dashboard";
 import { AdminPanel } from "../components/AdminPanel";
 import { BrandsMarquee } from "../components/BrandsMarquee";
 import { CartProvider, useCart } from "../context/CartContext";
-import { products } from "../utils/products";
+import type { Product } from "../lib/store-api";
 import { User, hasPermission } from "../utils/auth";
 
 type Page = "home" | "dashboard" | "admin";
@@ -59,11 +59,12 @@ function HomeContent() {
   const router = useRouter();
   const [cartOpen, setCartOpen] = useState(false);
   const [checkoutOpen, setCheckoutOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState<(typeof products)[0] | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState<Page>("home");
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [showCartToast, setShowCartToast] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const firstAddRef = useRef(false);
 
   const { items: cartItems, addItem, removeItem, updateQuantity, clearCart } = useCart();
@@ -84,10 +85,12 @@ function HomeContent() {
     setCheckoutOpen(true);
   };
 
-  const handleLogin = (user: User) => {
-    setCurrentUser(user);
+  const handleLogin = (user: { email: string; name: string; role: string; }, token: string) => {
+    const authUser: User = { email: user.email, name: user.name, role: user.role as User["role"] };
+    setCurrentUser(authUser);
+    localStorage.setItem("token", token);
     setLoginOpen(false);
-    if (user.role === "admin" || user.role === "manager") {
+    if (authUser.role === "admin" || authUser.role === "manager") {
       setCurrentPage("admin");
     } else {
       setCurrentPage("dashboard");
@@ -95,8 +98,12 @@ function HomeContent() {
   };
 
   const handleLogout = () => {
-    setCurrentUser(null);
-    setCurrentPage("home");
+    setLoggingOut(true);
+    setTimeout(() => {
+      setCurrentUser(null);
+      setCurrentPage("home");
+      setLoggingOut(false);
+    }, 400);
   };
 
   const handleDashboardClick = () => {
@@ -120,6 +127,7 @@ function HomeContent() {
       <Dashboard
         user={currentUser}
         onLogout={handleLogout}
+        loggingOut={loggingOut}
         hasPermission={(permission: string) =>
           hasPermission(currentUser.role, permission)
         }
@@ -137,6 +145,7 @@ function HomeContent() {
         isAuthenticated={!!currentUser}
         user={currentUser}
         onLogout={handleLogout}
+        loggingOut={loggingOut}
       />
       <main>
         <Hero />

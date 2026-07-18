@@ -4,7 +4,7 @@
  */
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
-import { getDb } from "@/lib/db";
+import { markOrderPaid } from "@/server/ecommerce";
 
 export async function POST(req: NextRequest) {
   const body = await req.text();
@@ -22,17 +22,8 @@ export async function POST(req: NextRequest) {
   const event = JSON.parse(body);
 
   if (event.event === "charge.success") {
-    const sql = getDb();
     const reference = event.data.reference;
-    await sql`
-      UPDATE orders
-      SET payment_status = 'paid',
-          status         = 'processing',
-          paystack_ref   = ${reference},
-          updated_at     = NOW()
-      WHERE reference = ${reference}
-        AND payment_status != 'paid'
-    `;
+    await markOrderPaid(reference);
   }
 
   return NextResponse.json({ received: true });

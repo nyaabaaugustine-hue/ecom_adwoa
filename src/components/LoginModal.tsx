@@ -1,12 +1,12 @@
 "use client";
 import { useState } from "react";
+import Image from "next/image";
 import { X, Eye, EyeOff, Lock, Mail, AlertCircle } from "lucide-react";
-import { authenticateUser, User } from "../utils/auth";
 
 interface LoginModalProps {
   open: boolean;
   onClose: () => void;
-  onLogin: (user: User) => void;
+  onLogin: (user: { email: string; name: string; role: string }, token: string) => void;
 }
 
 export function LoginModal({ open, onClose, onLogin }: LoginModalProps) {
@@ -23,17 +23,28 @@ export function LoginModal({ open, onClose, onLogin }: LoginModalProps) {
     setError("");
     setIsLoading(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 800));
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
 
-    const user = authenticateUser(email, password);
-    if (!user) {
-      setError("Invalid email or password. Please try again.");
-      setIsLoading(false);
-    } else {
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Invalid email or password. Please try again.");
+        setIsLoading(false);
+        return;
+      }
+
       setIsLoading(false);
       setEmail("");
       setPassword("");
-      onLogin(user);
+      onLogin(data.user, data.token);
+    } catch {
+      setError("Network error. Please try again.");
+      setIsLoading(false);
     }
   };
 
@@ -56,8 +67,8 @@ export function LoginModal({ open, onClose, onLogin }: LoginModalProps) {
             >
               <X size={16} />
             </button>
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-white font-serif text-3xl font-bold">A</span>
+            <div className="w-16 h-16 mx-auto mb-4">
+              <Image src="https://res.cloudinary.com/dwsl2ktt2/image/upload/v1784297096/adjologo_jhcfap.png" alt="Adwoa's Beauty" width={64} height={64} loading="lazy" className="w-16 h-16 object-contain brightness-0 invert" />
             </div>
             <h2 className="text-2xl font-serif font-medium text-white">
               Welcome Back
@@ -86,6 +97,10 @@ export function LoginModal({ open, onClose, onLogin }: LoginModalProps) {
                 <p>
                   <span className="font-medium text-gray-700">Staff:</span>{" "}
                   staff@adwoas.com / staff123
+                </p>
+                <p>
+                  <span className="font-medium text-gray-700">Customer:</span>{" "}
+                  customer@adwoas.com / customer123
                 </p>
               </div>
             </div>
@@ -162,7 +177,7 @@ export function LoginModal({ open, onClose, onLogin }: LoginModalProps) {
             </form>
 
             <p className="text-center text-gray-400 text-xs mt-5">
-              Protected by role-based access control 🔒
+              Protected by role-based access control
             </p>
           </div>
         </div>

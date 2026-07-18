@@ -5,43 +5,34 @@ import { Search, Package, Truck, CheckCircle, Clock, MapPin, Phone, AlertCircle 
 import { AnnouncementBar } from "../../components/AnnouncementBar";
 import { Footer } from "../../components/Footer";
 import { StaticHeader } from "../../components/StaticHeader";
+import { fetchOrderByReference, type Order } from "../../lib/store-api";
 
-const demoOrders: Record<string, { status: string; customer: string; items: string[]; placed: string; eta: string; steps: { label: string; done: boolean; active: boolean; time: string }[] }> = {
-  "ADW-2024-001": {
-    status: "In Transit",
-    customer: "Adwoa Mensah",
-    items: ["Ankara Maxi Dress", "Shea Butter Lip Gloss Set"],
-    placed: "12 May 2024",
-    eta: "14 May 2024",
-    steps: [
-      { label: "Order Placed", done: true, active: false, time: "12 May, 9:00 AM" },
-      { label: "Payment Confirmed", done: true, active: false, time: "12 May, 9:05 AM" },
-      { label: "Processing", done: true, active: false, time: "12 May, 2:00 PM" },
-      { label: "Shipped", done: true, active: false, time: "13 May, 8:00 AM" },
-      { label: "Out for Delivery", done: false, active: true, time: "Expected today" },
-      { label: "Delivered", done: false, active: false, time: "—" },
-    ],
-  },
-  "ADW-2024-002": {
-    status: "Delivered",
-    customer: "Ama Boateng",
-    items: ["Raw Shea Butter 500g"],
-    placed: "10 May 2024",
-    eta: "12 May 2024",
-    steps: [
-      { label: "Order Placed", done: true, active: false, time: "10 May, 11:00 AM" },
-      { label: "Payment Confirmed", done: true, active: false, time: "10 May, 11:05 AM" },
-      { label: "Processing", done: true, active: false, time: "10 May, 3:00 PM" },
-      { label: "Shipped", done: true, active: false, time: "11 May, 8:00 AM" },
-      { label: "Out for Delivery", done: true, active: false, time: "12 May, 10:00 AM" },
-      { label: "Delivered", done: true, active: false, time: "12 May, 2:30 PM" },
-    ],
-  },
+const STATUS_STEPS = ["pending", "processing", "shipped", "delivered"] as const;
+const STATUS_LABELS: Record<string, string> = {
+  pending: "Order Placed",
+  processing: "Processing",
+  shipped: "Shipped",
+  delivered: "Delivered",
 };
+
+function buildTimeline(order: Order) {
+  if (order.status === "cancelled" || order.status === "returned") {
+    return [
+      { label: "Order Placed", done: true, active: false },
+      { label: order.status === "cancelled" ? "Order Cancelled" : "Order Returned", done: true, active: true },
+    ];
+  }
+  const currentIndex = STATUS_STEPS.indexOf(order.status as (typeof STATUS_STEPS)[number]);
+  return STATUS_STEPS.map((step, i) => ({
+    label: STATUS_LABELS[step],
+    done: i < currentIndex || (i === currentIndex && step === "delivered"),
+    active: i === currentIndex && step !== "delivered",
+  }));
+}
 
 export default function TrackOrderPage() {
   const [ref, setRef] = useState("");
-  const [result, setResult] = useState<typeof demoOrders[string] | null>(null);
+  const [result, setResult] = useState<Order | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -50,12 +41,18 @@ export default function TrackOrderPage() {
     setLoading(true);
     setNotFound(false);
     setResult(null);
-    await new Promise(r => setTimeout(r, 1200));
-    const order = demoOrders[ref.trim().toUpperCase()];
-    if (order) setResult(order);
-    else setNotFound(true);
-    setLoading(false);
+    try {
+      const order = await fetchOrderByReference(ref.trim());
+      if (order) setResult(order);
+      else setNotFound(true);
+    } catch {
+      setNotFound(true);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const timeline = result ? buildTimeline(result) : [];
 
   return (
     <div className="min-h-screen bg-white">
@@ -75,7 +72,7 @@ export default function TrackOrderPage() {
           <form onSubmit={handleTrack} className="flex gap-3 max-w-md mx-auto">
             <input
               type="text" value={ref} onChange={e => setRef(e.target.value)}
-              placeholder="e.g. ADW-2024-001"
+              placeholder="e.g. ADWOA-1735000001-AA1111"
               className="flex-1 px-5 py-4 border-2 border-gray-200 rounded-xl text-sm focus:outline-none focus:border-pink-400 bg-white shadow-sm font-mono"
             />
             <button type="submit" disabled={loading || !ref.trim()}
@@ -85,7 +82,7 @@ export default function TrackOrderPage() {
             </button>
           </form>
 
-          <p className="text-gray-400 text-xs mt-3">Try: ADW-2024-001 or ADW-2024-002 for demo</p>
+          <p className="text-gray-400 text-xs mt-3">Use the reference from your order confirmation.</p>
         </div>
       </section>
 
@@ -107,21 +104,22 @@ export default function TrackOrderPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <p className="text-xs text-gray-400 uppercase tracking-wide font-bold mb-1">Order Reference</p>
-                    <p className="font-mono font-bold text-xl text-gray-800">{ref.toUpperCase()}</p>
+                    <p className="font-mono font-bold text-xl text-gray-800">{result.reference}</p>
                   </div>
-                  <span className={`px-4 py-2 rounded-full text-sm font-bold ${result.status === "Delivered" ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
-                    {result.status === "Delivered" ? "✅ " : "🚚 "}{result.status}
+                  <span className={`px-4 py-2 rounded-full text-sm font-bold ${result.status === "delivered" ? "bg-green-100 text-green-700" : result.status === "cancelled" ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"}`}>
+                    {result.status === "delivered" ? "✅ " : result.status === "cancelled" ? "✕ " : "🚚 "}
+                    <span className="capitalize">{result.status}</span>
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                  <div><span className="text-gray-400">Customer:</span> <span className="font-medium">{result.customer}</span></div>
-                  <div><span className="text-gray-400">Placed:</span> <span className="font-medium">{result.placed}</span></div>
-                  <div><span className="text-gray-400">ETA:</span> <span className="font-medium">{result.eta}</span></div>
+                  <div><span className="text-gray-400">Customer:</span> <span className="font-medium">{result.customerName || "—"}</span></div>
+                  <div><span className="text-gray-400">Placed:</span> <span className="font-medium">{new Date(result.createdAt).toLocaleDateString()}</span></div>
+                  <div><span className="text-gray-400">Payment:</span> <span className="font-medium capitalize">{result.paymentStatus}</span></div>
                   <div><span className="text-gray-400">Items:</span> <span className="font-medium">{result.items.length}</span></div>
                 </div>
                 <div className="mt-4 pt-4 border-t border-gray-100">
                   <p className="text-xs text-gray-400 uppercase tracking-wide font-bold mb-2">Items</p>
-                  {result.items.map(item => <p key={item} className="text-sm text-gray-700">• {item}</p>)}
+                  {result.items.map((item, i) => <p key={i} className="text-sm text-gray-700">• {item.name} × {item.quantity}</p>)}
                 </div>
               </div>
 
@@ -129,7 +127,7 @@ export default function TrackOrderPage() {
               <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
                 <h3 className="font-bold text-gray-900 mb-6">Delivery Timeline</h3>
                 <div className="space-y-0">
-                  {result.steps.map((step, i) => (
+                  {timeline.map((step, i) => (
                     <div key={step.label} className="flex gap-4">
                       <div className="flex flex-col items-center">
                         <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
@@ -139,13 +137,12 @@ export default function TrackOrderPage() {
                         }`}>
                           {step.done ? <CheckCircle size={18} /> : step.active ? <Truck size={18} /> : <Package size={16} />}
                         </div>
-                        {i < result.steps.length - 1 && (
+                        {i < timeline.length - 1 && (
                           <div className={`w-0.5 h-8 mt-1 ${step.done ? "bg-green-300" : "bg-gray-200"}`} />
                         )}
                       </div>
                       <div className="pb-6 flex-1">
                         <p className={`font-semibold text-sm ${step.done || step.active ? "text-gray-900" : "text-gray-400"}`}>{step.label}</p>
-                        <p className={`text-xs mt-0.5 ${step.done ? "text-green-600" : step.active ? "text-pink-500 font-semibold" : "text-gray-400"}`}>{step.time}</p>
                       </div>
                     </div>
                   ))}

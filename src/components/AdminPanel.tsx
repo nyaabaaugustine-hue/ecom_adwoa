@@ -1,9 +1,10 @@
 "use client";
+import Image from "next/image";
 import { useState } from "react";
 import {
   LayoutDashboard, Package, ShoppingBag, Users, BarChart3,
   Tags, Truck, CreditCard, Bell, Shield, FileText, Percent,
-  ChevronLeft, LogOut, Menu, AlertCircle,
+  ChevronLeft, LogOut, Menu, AlertCircle, Loader2,
 } from "lucide-react";
 import { User } from "../utils/auth";
 import { AdminOverview } from "./AdminOverview";
@@ -11,6 +12,12 @@ import { AdminProducts } from "./AdminProducts";
 import { OrdersManager } from "./OrdersManager";
 import { CustomersManager } from "./CustomersManager";
 import { AnalyticsView } from "./AnalyticsView";
+import { ReportsView } from "./ReportsView";
+import { DiscountsView } from "./DiscountsView";
+import { ShippingView } from "./ShippingView";
+import { PaymentsView } from "./PaymentsView";
+import { NotificationsView } from "./NotificationsView";
+import { SecurityView } from "./SecurityView";
 
 interface AdminPanelProps {
   user: User;
@@ -38,6 +45,7 @@ const menuItems: { id: AdminView; label: string; icon: React.ElementType }[] = [
 export function AdminPanel({ user, onLogout }: AdminPanelProps) {
   const [currentView, setCurrentView] = useState<AdminView>("overview");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [loggingOut, setLoggingOut] = useState(false);
 
   const renderContent = () => {
     switch (currentView) {
@@ -46,6 +54,12 @@ export function AdminPanel({ user, onLogout }: AdminPanelProps) {
       case "orders": return <OrdersManager hasPermission={() => true} />;
       case "customers": return <CustomersManager />;
       case "analytics": return <AnalyticsView />;
+      case "reports": return <ReportsView />;
+      case "discounts": return <DiscountsView />;
+      case "shipping": return <ShippingView />;
+      case "payments": return <PaymentsView />;
+      case "notifications": return <NotificationsView />;
+      case "security": return <SecurityView />;
       default: return <AdminOverview />;
     }
   };
@@ -59,9 +73,7 @@ export function AdminPanel({ user, onLogout }: AdminPanelProps) {
         {/* Logo */}
         <div className="p-4 border-b border-gray-800">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-amber-500 rounded-xl flex items-center justify-center font-bold text-white flex-shrink-0">
-              A
-            </div>
+            <Image src="https://res.cloudinary.com/dwsl2ktt2/image/upload/v1784297096/adjologo_jhcfap.png" alt="Adwoa's Beauty" width={40} height={40} loading="lazy" className="w-10 h-10 object-contain flex-shrink-0" />
             {sidebarOpen && (
               <div className="min-w-0">
                 <h1 className="font-bold text-base leading-tight truncate">
@@ -120,13 +132,14 @@ export function AdminPanel({ user, onLogout }: AdminPanelProps) {
             )}
           </div>
           <button
-            onClick={onLogout}
+            onClick={() => { setLoggingOut(true); onLogout(); }}
+            disabled={loggingOut}
             className={`w-full flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors ${
               !sidebarOpen ? "justify-center" : ""
-            }`}
+            } disabled:opacity-50`}
             title={!sidebarOpen ? "Logout" : undefined}
           >
-            <LogOut size={17} />
+            {loggingOut ? <Loader2 size={17} className="animate-spin" /> : <LogOut size={17} />}
             {sidebarOpen && <span className="text-sm">Logout</span>}
           </button>
         </div>

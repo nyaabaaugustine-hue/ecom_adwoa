@@ -1,33 +1,40 @@
-/**
- * Cloudinary utility for safe image delivery with fallbacks.
- */
-
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'dwsl2ktt2';
 
-/**
- * Generates a Cloudinary URL with an automatic fallback.
- * 
- * For external URLs (e.g., Unsplash): uses Cloudinary's fetch API
- * For Cloudinary public IDs: uses the upload API with fallback
- * 
- * @param src - The image source (full URL or Cloudinary public ID)
- * @returns A formatted Cloudinary URL string
- */
-export function getSafeImageUrl(src: string): string {
-  // Handle external URLs using Cloudinary's fetch API
-  if (src.startsWith('http://') || src.startsWith('https://')) {
-    // Check if it's already a Cloudinary URL
-    if (src.includes('res.cloudinary.com')) {
-      return src;
-    }
-    // Use fetch API for external images
-    return `https://res.cloudinary.com/${CLOUD_NAME}/image/fetch/${src}`;
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=800&h=800&fit=crop&q=80';
+
+export function getSafeImageUrl(src: string, width?: number): string {
+  if (!src) {
+    return FALLBACK_IMAGE;
   }
 
-  // Handle Cloudinary public IDs
-  const idOnly = src.includes('image/upload/') 
-    ? src.split('image/upload/').pop()?.replace(/v\d+\//, '') 
-    : src;
+  // Locally-uploaded image (from /api/upload => "/uploads/xyz.jpg") — serve as-is,
+  // Next/Image handles local /public paths natively without needing remotePatterns.
+  if (src.startsWith('/')) {
+    return src;
+  }
 
-  return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/d_default.jpg/v1/${idOnly}`;
+  // Already a full external URL (e.g. a stock photo or any non-Cloudinary CDN) —
+  // use it directly instead of proxying through Cloudinary's fetch delivery,
+  // which requires "allowed fetch domains" to be configured and is unreliable
+  // if that hasn't been set up.
+  if ((src.startsWith('http://') || src.startsWith('https://')) && !src.includes('res.cloudinary.com')) {
+    return src;
+  }
+
+  // Full Cloudinary URL — apply f_auto/q_auto (+ optional width) transforms.
+  if (src.startsWith('http://') || src.startsWith('https://')) {
+    const parts = src.split('image/upload/');
+    if (parts.length < 2) return src;
+
+    const tail = parts[1].replace(/^v\d+\//, '');
+    const transforms = [`f_auto`, `q_auto`];
+    if (width) transforms.push(`w_${width}`);
+
+    return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/${transforms.join(',')}/v1/${tail}`;
+  }
+
+  // Bare identifier that isn't a URL or local path — a leftover/placeholder
+  // Cloudinary public_id that was never actually uploaded. Fall back to a
+  // stock image rather than requesting an asset that doesn't exist.
+  return FALLBACK_IMAGE;
 }

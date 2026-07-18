@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
-  X, Loader, CheckCircle, AlertCircle, ChevronLeft, Copy, Check, Shield,
+  X, Loader, CheckCircle, AlertCircle, ChevronLeft, Copy, Check, Shield, Truck,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 
@@ -16,7 +16,7 @@ interface CheckoutModalProps {
   onSuccess: (reference: string) => void;
 }
 
-type PaymentMethod = "card" | "momo_mtn" | "momo_telecel" | "momo_at" | null;
+type PaymentMethod = "card" | "momo_mtn" | "momo_telecel" | "momo_at" | "cod" | null;
 type PaymentStep = "form" | "method" | "payment" | "success" | "error";
 
 const TEST_CARD = { number: "4084 0843 6020 0522", expiry: "01/99", cvv: "408", pin: "0000", otp: "123456" };
@@ -61,6 +61,15 @@ const PAYMENT_METHODS = [
     bg: "#F3F4F6",
     border: "#6366F1",
     accent: "#4338CA",
+  },
+  {
+    id: "cod",
+    label: "Pay on Delivery",
+    subtitle: "Pay cash when your order arrives",
+    icon: true,
+    bg: "#ECFDF5",
+    border: "#10B981",
+    accent: "#047857",
   },
 ] as const;
 
@@ -160,14 +169,52 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
     });
   };
 
-  const handlePay = async () => {
+  const handlePlaceCodOrder = async () => {
     setLoading(true);
     setError("");
     try {
       const initRes = await fetch("/api/payment/initialize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: formData.name, email: formData.email, phone: paymentMethod !== "card" ? momoPhone : formData.phone, address: formData.address, items, total }),
+        body: JSON.stringify({
+          method: "cod",
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+          address: formData.address,
+          notes: formData.notes,
+          items: items.map((i) => ({ product_id: i.id, name: i.name, price: i.price, quantity: i.quantity })),
+          total,
+        }),
+      });
+      if (!initRes.ok) { const b = await initRes.json().catch(() => ({})); throw new Error(b.error || "Could not place order."); }
+      const { reference: ref } = await initRes.json();
+
+      setLoading(false);
+      setReference(ref);
+      setStep("success");
+      clearCart();
+      setTimeout(() => { onSuccess(ref); router.push(`/checkout/success?ref=${ref}`); handleClose(); }, 2000);
+    } catch (err: any) {
+      setLoading(false);
+      setError(err.message || "Could not place order.");
+      setStep("error");
+    }
+  };
+
+  const handlePay = async () => {
+    if (paymentMethod === "cod") {
+      await handlePlaceCodOrder();
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    try {
+      const initRes = await fetch("/api/payment/initialize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ method: "paystack", name: formData.name, email: formData.email, phone: paymentMethod !== "card" ? momoPhone : formData.phone, address: formData.address, items: items.map((i) => ({ product_id: i.id, name: i.name, price: i.price, quantity: i.quantity })), total }),
       });
       if (!initRes.ok) { const b = await initRes.json().catch(() => ({})); throw new Error(b.error || "Could not create order."); }
       const { reference: ref } = await initRes.json();
@@ -215,7 +262,8 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
   const stepOrder: PaymentStep[] = ["form", "method", "payment"];
   const currentStepIndex = stepOrder.indexOf(step);
   const selectedMethod = PAYMENT_METHODS.find((m) => m.id === paymentMethod);
-  const isMomo = paymentMethod && paymentMethod !== "card";
+  const isMomo = paymentMethod && paymentMethod !== "card" && paymentMethod !== "cod";
+  const isCod = paymentMethod === "cod";
 
   return (
     <>
@@ -242,9 +290,9 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
             <h2 className="text-base font-bold text-gray-900">
               {step === "form" && "Your Details"}
               {step === "method" && "Choose Payment"}
-              {step === "payment" && "Confirm & Pay"}
+              {step === "payment" && (isCod ? "Confirm Order" : "Confirm & Pay")}
               {step === "success" && "Order Placed!"}
-              {step === "error" && "Payment Failed"}
+              {step === "error" && (isCod ? "Order Failed" : "Payment Failed")}
             </h2>
             {["form", "method", "payment"].includes(step) && (
               <p className="text-[11px] text-gray-400 mt-0.5">Step {currentStepIndex + 1} of 3</p>
@@ -328,17 +376,21 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
                     style={{ background: method.bg, border: `2px solid ${method.border}33` }}
                   >
                     <div className="flex items-center gap-4">
-                      {/* Logo(s) */}
+                      {/* Logo(s) / icon */}
                       <div className="flex items-center gap-2 w-24 shrink-0">
                         {"logo" in method ? (
                           <div className="w-20 h-12 rounded-xl overflow-hidden bg-white flex items-center justify-center p-1.5 shadow-sm">
                             <Image src={method.logo} alt={method.label} width={72} height={40} className="object-contain w-full h-full" />
                           </div>
-                        ) : (
+                        ) : "logos" in method ? (
                           <div className="flex items-center gap-1 bg-white rounded-xl px-2 py-1.5 shadow-sm">
                             {method.logos.map((l) => (
                               <Image key={l.alt} src={l.src} alt={l.alt} width={l.w} height={l.h} className="object-contain" style={{ height: 22, width: "auto" }} />
                             ))}
+                          </div>
+                        ) : (
+                          <div className="w-20 h-12 rounded-xl overflow-hidden bg-white flex items-center justify-center shadow-sm">
+                            <Truck size={26} style={{ color: method.accent }} />
                           </div>
                         )}
                       </div>
@@ -358,7 +410,7 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
                 {/* Secure badge */}
                 <div className="flex items-center justify-center gap-2 mt-4 pt-3 border-t border-gray-100">
                   <Shield size={13} className="text-green-500" />
-                  <span className="text-xs text-gray-400 font-medium">256-bit SSL encrypted • Powered by Paystack</span>
+                  <span className="text-xs text-gray-400 font-medium">256-bit SSL encrypted • Secure checkout</span>
                 </div>
               </div>
             )}
@@ -373,11 +425,15 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
                       <div className="w-16 h-10 rounded-lg overflow-hidden bg-white flex items-center justify-center p-1 shadow-sm shrink-0">
                         <Image src={selectedMethod.logo} alt={selectedMethod.label} width={60} height={36} className="object-contain w-full h-full" />
                       </div>
-                    ) : (
+                    ) : "logos" in selectedMethod ? (
                       <div className="flex items-center gap-1.5 bg-white rounded-lg px-2 py-1 shadow-sm shrink-0">
                         {selectedMethod.logos.map((l) => (
                           <Image key={l.alt} src={l.src} alt={l.alt} width={l.w} height={l.h} className="object-contain" style={{ height: 20, width: "auto" }} />
                         ))}
+                      </div>
+                    ) : (
+                      <div className="w-14 h-10 rounded-lg overflow-hidden bg-white flex items-center justify-center shadow-sm shrink-0">
+                        <Truck size={22} style={{ color: selectedMethod.accent }} />
                       </div>
                     )}
                     <div>
@@ -387,11 +443,24 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
                   </div>
                 )}
 
-                {/* Test mode notice */}
-                <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
-                  <p className="text-xs font-bold text-amber-700 mb-0.5">🧪 Test Mode — no real charge</p>
-                  <p className="text-xs text-amber-600">Use the credentials below in the Paystack popup.</p>
-                </div>
+                {/* COD info panel */}
+                {isCod && (
+                  <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 space-y-2">
+                    <p className="text-xs font-bold text-emerald-700">💵 Pay when it arrives</p>
+                    <p className="text-xs text-emerald-700">
+                      No payment is taken now. Please have <span className="font-bold">GHc{total.toFixed(2)}</span> in cash ready for the courier when your order is delivered to:
+                    </p>
+                    <p className="text-xs text-emerald-800 font-medium bg-white/60 rounded-lg px-3 py-2">{formData.address || "the address you provided"}</p>
+                  </div>
+                )}
+
+                {/* Test mode notice (Paystack methods only) */}
+                {!isCod && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                    <p className="text-xs font-bold text-amber-700 mb-0.5">🧪 Test Mode — no real charge</p>
+                    <p className="text-xs text-amber-600">Use the credentials below in the Paystack popup.</p>
+                  </div>
+                )}
 
                 {/* Card credentials */}
                 {paymentMethod === "card" && (
@@ -431,8 +500,9 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
                 <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
                   <CheckCircle size={44} className="text-green-500" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800">Payment Successful!</h3>
+                <h3 className="text-2xl font-bold text-gray-800">{isCod ? "Order Placed!" : "Payment Successful!"}</h3>
                 <p className="text-gray-500 text-sm">Ref: <span className="font-mono font-bold text-gray-800">{reference}</span></p>
+                {isCod && <p className="text-xs text-gray-500">Have GHc{total.toFixed(2)} ready in cash for the courier.</p>}
                 <p className="text-xs text-gray-400 animate-pulse">Redirecting to your order confirmation…</p>
               </div>
             )}
@@ -443,7 +513,7 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
                 <div className="w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto">
                   <AlertCircle size={44} className="text-red-400" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-2xl font-bold text-gray-800">Payment Failed</h3>
+                <h3 className="text-2xl font-bold text-gray-800">{isCod ? "Couldn't Place Order" : "Payment Failed"}</h3>
                 <p className="text-gray-500 text-sm max-w-sm mx-auto">{error}</p>
               </div>
             )}
@@ -464,9 +534,9 @@ export function CheckoutModal({ isOpen, items, total, onClose, onSuccess }: Chec
           {step === "payment" && (
             <button onClick={handlePay} disabled={loading}
               className="flex-1 text-white font-bold py-3.5 rounded-xl transition-all text-sm hover:opacity-90 disabled:bg-gray-300 disabled:shadow-none flex items-center justify-center gap-2 shadow-lg"
-              style={!loading ? { background: "linear-gradient(135deg,#22c55e,#16a34a)", boxShadow: "0 4px 16px #22c55e44" } : {}}>
+              style={!loading ? { background: isCod ? "linear-gradient(135deg,#10b981,#047857)" : "linear-gradient(135deg,#22c55e,#16a34a)", boxShadow: isCod ? "0 4px 16px #10b98144" : "0 4px 16px #22c55e44" } : {}}>
               {loading && <Loader size={16} className="animate-spin" />}
-              {loading ? "Creating order…" : `Pay GHc${total.toFixed(2)} securely`}
+              {loading ? (isCod ? "Placing order…" : "Creating order…") : (isCod ? `Place Order — GHc${total.toFixed(2)} on delivery` : `Pay GHc${total.toFixed(2)} securely`)}
             </button>
           )}
           {step === "error" && (

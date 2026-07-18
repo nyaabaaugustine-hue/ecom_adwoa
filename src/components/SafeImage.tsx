@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import Image, { type ImageProps } from "next/image";
 import { getSafeImageUrl } from "./cloudinary";
 import { clsx, type ClassValue } from "clsx";
@@ -16,10 +16,6 @@ interface SafeImageProps extends Omit<ImageProps, "src"> {
   className?: string;
 }
 
-/**
- * SafeImage component that prevents broken images using Cloudinary fallbacks
- * and displays a shimmer skeleton while loading.
- */
 export function SafeImage({
   src,
   alt,
@@ -27,12 +23,16 @@ export function SafeImage({
   height,
   fill,
   className,
+  sizes,
+  fetchPriority,
   ...props
 }: SafeImageProps) {
   const [isLoading, setLoading] = useState(true);
-  
-  // Transform the source into a Cloudinary-safe URL
-  const safeSrc = getSafeImageUrl(src);
+
+  const safeSrc = useMemo(() => {
+    const w = width && !fill ? Number(width) : undefined;
+    return getSafeImageUrl(src, w);
+  }, [src, width, fill]);
 
   return (
     <div
@@ -46,17 +46,18 @@ export function SafeImage({
           : undefined
       }
     >
-      {/* Shimmer Skeleton */}
       {isLoading && (
         <div className="absolute inset-0 z-10 animate-pulse bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200" />
       )}
-      
+
       <Image
         src={safeSrc}
         alt={alt}
         width={fill ? undefined : width}
         height={fill ? undefined : height}
         fill={fill}
+        sizes={sizes || "100vw"}
+        fetchPriority={fetchPriority}
         onLoad={() => setLoading(false)}
         className={cn(
           "duration-700 ease-in-out",

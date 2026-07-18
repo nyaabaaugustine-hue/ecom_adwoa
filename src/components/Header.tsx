@@ -1,11 +1,11 @@
 "use client";
 import { useState } from "react";
 import Image from "next/image";
-import { Search, Menu, User as UserIcon, ShoppingBag, Heart, X, LogOut, ChevronDown, LayoutDashboard } from "lucide-react";
+import { Search, Menu, User as UserIcon, ShoppingBag, Heart, X, LogOut, ChevronDown, LayoutDashboard, Loader2 } from "lucide-react";
 import { User } from "../utils/auth";
 
 const LOGO_URL =
-  "https://res.cloudinary.com/dwsl2ktt2/image/upload/v1778724509/logo_fxelgm.png";
+  "https://res.cloudinary.com/dwsl2ktt2/image/upload/v1784297096/adjologo_jhcfap.png";
 
 interface HeaderProps {
   cartCount: number;
@@ -14,6 +14,7 @@ interface HeaderProps {
   isAuthenticated: boolean;
   user: User | null;
   onLogout: () => void;
+  loggingOut?: boolean;
 }
 
 export function Header({
@@ -23,6 +24,7 @@ export function Header({
   isAuthenticated,
   user,
   onLogout,
+  loggingOut,
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -153,8 +155,8 @@ export function Header({
                   <button onClick={onDashboardClick} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-600 hover:bg-gray-50 hover:text-pink-500 transition-colors">
                     <LayoutDashboard size={15} /> Dashboard
                   </button>
-                  <button onClick={onLogout} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors">
-                    <LogOut size={15} /> Sign Out
+                  <button onClick={onLogout} disabled={loggingOut} className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50">
+                    {loggingOut ? <Loader2 size={15} className="animate-spin" /> : <LogOut size={15} />} Sign Out
                   </button>
                 </div>
               </div>
@@ -227,8 +229,8 @@ export function Header({
                   <button onClick={() => { onDashboardClick(); setMobileMenuOpen(false); }} className="flex items-center gap-2 text-sm text-gray-600 font-medium py-2">
                     <LayoutDashboard size={16} /> Dashboard ({user.name})
                   </button>
-                  <button onClick={() => { onLogout(); setMobileMenuOpen(false); }} className="flex items-center gap-2 text-sm text-red-500 font-medium py-2">
-                    <LogOut size={16} /> Sign Out
+                  <button onClick={() => { onLogout(); setMobileMenuOpen(false); }} disabled={loggingOut} className="flex items-center gap-2 text-sm text-red-500 font-medium py-2 disabled:opacity-50">
+                    {loggingOut ? <Loader2 size={16} className="animate-spin" /> : <LogOut size={16} />} Sign Out
                   </button>
                 </>
               ) : (
